@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\AuthenticateAdmin;
 use App\Http\Controllers\Api\Auth\Admin\AdminAuthController;
+use App\Http\Controllers\Api\Admin\JobCategory\JobCategoryController;
 use App\Http\Controllers\Api\Admin\JobSeeker\JobApplicationController;
 
 
@@ -42,6 +43,27 @@ Route::prefix('admin')->group(function () {
             // Route to delete a job application
             Route::delete('/{jobApplicationId}', [JobApplicationController::class, 'deleteJobApplication']);
         });
+
+
+
+
+            // Job category routes
+            Route::get('job-categories', [JobCategoryController::class, 'getJobCategories']);
+            Route::post('job-categories', [JobCategoryController::class, 'createJobCategory']);
+            Route::put('job-categories/{category_id}', [JobCategoryController::class, 'updateJobCategory']);
+            Route::delete('job-categories/{category_id}', [JobCategoryController::class, 'deleteJobCategory']);
+            Route::get('job-categories/{category_id}', [JobCategoryController::class, 'getJobCategory']);
+
+
+
+
+
+
+
+
+
+
+
 
 
     });
