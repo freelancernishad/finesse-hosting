@@ -18,7 +18,11 @@ class JobCategoryController extends Controller
     public function getJobCategories(Request $request)
     {
         // Apply filters if provided
-        $query = JobCategory::query();
+        $query = JobCategory::query()->withCount([
+            'appliedJobs' => function ($query) {
+                $query->where('status', 'approved'); // Only count approved applications
+            }
+        ]);
 
         // Filter by category name
         if ($request->has('name')) {
@@ -43,6 +47,8 @@ class JobCategoryController extends Controller
 
         return response()->json($jobCategories, 200);
     }
+
+
 
 
     /**
