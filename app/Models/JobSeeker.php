@@ -24,6 +24,33 @@ class JobSeeker extends Authenticatable implements JWTSubject
         'password' => 'hashed',
     ];
 
+    // Append this field automatically when fetching the JobSeeker model
+    protected $appends = [
+        'average_review_rating'
+    ];
+
+    /**
+     * Relationship: JobSeekers reviews (Ratings and Comments)
+     */
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'job_seeker_id');
+    }
+
+    /**
+     * Accessor: Get the average rating of the job seeker
+     *
+     * @return float|null
+     */
+    public function getAverageReviewRatingAttribute()
+    {
+        // Get the average rating of all reviews (rounding to 1 decimal place)
+        $averageRating = $this->reviews()->avg('rating');
+
+        return $averageRating ? round($averageRating, 1) : 0; // Return null if no reviews exist
+    }
+
+
     public function saveProfilePicture($file)
     {
         $folderPath = $this->member_id; // Use member_id as the folder name
@@ -107,8 +134,5 @@ class JobSeeker extends Authenticatable implements JWTSubject
         return $this->hasMany(AppliedJob::class);
     }
 
-    public function reviews()
-    {
-        return $this->hasMany(Review::class);
-    }
+
 }
