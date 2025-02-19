@@ -69,15 +69,14 @@ Route::prefix('global/')->group(function () {
     Route::get('job-categories', [JobCategoryController::class, 'getJobCategories']);
 
 
+    Route::get('/request-quotes/{requestQuoteId}/job-seekers', [RequestQuoteController::class, 'getJobSeekersByRequestQuote']);
+
+
+
     Route::post('/request-quote', [RequestQuoteController::class, 'store']);
+    Route::post('request-quote/{requestQuoteId}/add-reviews', [ReviewController::class, 'addReviewsForRequestQuote']);
+    Route::post('job-seeker/{jobSeekerId}/add-review', [ReviewController::class, 'addReviewForJobSeeker']);
 
-
-
-     // Add reviews for multiple JobSeekers for one RequestQuote
-     Route::post('request-quote/{requestQuoteId}/add-reviews', [ReviewController::class, 'addReviewsForRequestQuote']);
-
-     // Add review for a single JobSeeker
-     Route::post('job-seeker/{jobSeekerId}/add-review', [ReviewController::class, 'addReviewForJobSeeker']);
 
 
 

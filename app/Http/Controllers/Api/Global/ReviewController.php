@@ -109,6 +109,7 @@ class ReviewController extends Controller
             'rating' => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string',
             'title' => 'nullable|string',
+            'request_quote_id' => 'required|exists:request_quotes,id',  // Ensure request_quote_id is passed and exists in the database
         ];
 
         // Create the validator
@@ -125,12 +126,14 @@ class ReviewController extends Controller
         $jobSeeker = JobSeeker::findOrFail($jobSeekerId);
 
         // Check if the RequestQuote exists and retrieve the associated user
-        $requestQuote = $jobSeeker->requestQuote; // Assuming there's a relationship from JobSeeker to RequestQuote
-        $user = $requestQuote ? $requestQuote->user : null; // Get the user related to the request quote
+        $requestQuote = RequestQuote::findOrFail($request->request_quote_id); // Fetch the RequestQuote based on the provided ID
+        $user = $requestQuote->user; // Get the user related to the request quote
 
-        // If no associated user found, fallback to the authenticated user
-        if (!$user) {
-            $user = auth()->user(); // Fallback to the authenticated user if no associated user
+        // Check if the JobSeeker is assigned to this RequestQuote
+        if (!$requestQuote->jobSeekers->contains($jobSeeker->id)) {
+            return response()->json([
+                'message' => 'The JobSeeker is not assigned to this RequestQuote.',
+            ], 400); // Bad Request status code
         }
 
         // Create the review for the JobSeeker
@@ -145,11 +148,29 @@ class ReviewController extends Controller
             'comment' => $request->comment,
             'title' => $request->title ?? 'Review Title', // Optional title
             'reviewer_type' => 'admin', // Set this as per your requirement
-            'request_quote_id' => null, // You can associate this if needed
+            'request_quote_id' => $requestQuote->id, // Associate with the given RequestQuote ID
         ]);
 
         return response()->json([
             'message' => 'Review added successfully.',
         ], 200);
     }
+
+
+    public function getJobSeekersByRequestQuote($requestQuoteId)
+    {
+        // Validate that the RequestQuote exists
+        $requestQuote = RequestQuote::findOrFail($requestQuoteId);
+
+        // Get all JobSeekers associated with the RequestQuote
+        $jobSeekers = $requestQuote->jobSeekers;
+
+        // Return the list of JobSeekers
+        return response()->json([
+            'job_seekers' => $jobSeekers,
+        ], 200);
+    }
+
+
+
 }

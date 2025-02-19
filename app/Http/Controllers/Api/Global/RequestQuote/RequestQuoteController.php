@@ -79,4 +79,19 @@ class RequestQuoteController extends Controller
     }
 
 
+
+    public function getJobSeekersByRequestQuote($requestQuoteId)
+    {
+        // Validate that the RequestQuote exists
+        $requestQuote = RequestQuote::findOrFail($requestQuoteId);
+
+        // Get all JobSeekers associated with the RequestQuote
+        $jobSeekers = $requestQuote->jobSeekers;
+
+        // Return the list of JobSeekers
+        return response()->json($jobSeekers, 200);
+    }
+
+
+
 }
