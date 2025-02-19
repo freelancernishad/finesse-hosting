@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Global\ReviewController;
 use App\Http\Controllers\Api\Server\ServerStatusController;
 use App\Http\Controllers\Api\User\Package\UserPackageController;
 use App\Http\Controllers\Api\Admin\JobCategory\JobCategoryController;
@@ -67,6 +68,17 @@ Route::prefix('global/')->group(function () {
 
     Route::get('job-categories', [JobCategoryController::class, 'getJobCategories']);
 
+
     Route::post('/request-quote', [RequestQuoteController::class, 'store']);
+
+
+
+     // Add reviews for multiple JobSeekers for one RequestQuote
+     Route::post('request-quote/{requestQuoteId}/add-reviews', [ReviewController::class, 'addReviewsForRequestQuote']);
+
+     // Add review for a single JobSeeker
+     Route::post('job-seeker/{jobSeekerId}/add-review', [ReviewController::class, 'addReviewForJobSeeker']);
+
+
 
 });

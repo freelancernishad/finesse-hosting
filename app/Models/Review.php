@@ -19,7 +19,8 @@ class Review extends Model
         'rating',
         'comment',
         'title',
-        'reviewer_type'
+        'reviewer_type',
+        'request_quote_id'
     ];
 
     // Relationship: The JobSeeker being reviewed
