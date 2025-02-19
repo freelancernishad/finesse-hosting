@@ -13,7 +13,7 @@ class AppliedJob extends Model
     protected $fillable = [
         'name', 'phone', 'email', 'date_of_birth', 'country', 'city',
         'post_code', 'address', 'interest_file', 'area', 'category', 'job_seeker_id',
-        'status', 'review_comments', 'admin_id', 'unique_job_apply_id'
+        'status', 'review_comments', 'admin_id', 'unique_job_apply_id', 'job_category_id'
     ];
 
     // Automatically generate a unique job apply ID on creation
@@ -35,6 +35,14 @@ class AppliedJob extends Model
     {
         return $this->belongsTo(Admin::class, 'admin_id');
     }
+
+
+    // Relationship with JobCategory
+    public function jobCategory()
+    {
+        return $this->belongsTo(JobCategory::class, 'job_category_id');
+    }
+
 
     /**
      * Save the interest file to a specific folder in S3.

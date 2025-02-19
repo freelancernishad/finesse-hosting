@@ -30,11 +30,20 @@ class JobCategoryController extends Controller
             $query->where('status', $request->status);
         }
 
-        // Paginate results
-        $jobCategories = $query->paginate(10); // Adjust pagination as necessary
+        // Order by latest
+        $query->latest(); // Equivalent to orderBy('created_at', 'desc')
+
+        // Check if the user is authenticated with the 'admin' guard
+        if (auth('admin')->check()) {
+            $perPage = $request->input('per_page', 10); // Default to 10 if not provided
+            $jobCategories = $query->paginate($perPage);
+        } else {
+            $jobCategories = $query->get(); // Get all without pagination
+        }
 
         return response()->json($jobCategories, 200);
     }
+
 
     /**
      * Create a new job category.

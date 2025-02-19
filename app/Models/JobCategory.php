@@ -10,7 +10,7 @@ class JobCategory extends Model
 {
     use HasFactory;
 
-   
+
 
 
     // Fillable fields for mass assignment
@@ -19,6 +19,13 @@ class JobCategory extends Model
         'name',
         'status',
     ];
+
+
+    // Relationship with AppliedJob
+    public function appliedJobs()
+    {
+        return $this->hasMany(AppliedJob::class, 'job_category_id');
+    }
 
     /**
      * Boot method to generate a unique category_id before saving.
