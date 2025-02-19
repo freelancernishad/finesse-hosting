@@ -122,13 +122,6 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         return $filePath;
     }
 
-    /**
-     * Get all schedules created by the user.
-     */
-    public function schedules()
-    {
-        return $this->hasMany(Schedule::class);
-    }
 
 
     public function getBusinessNameAttribute($value)

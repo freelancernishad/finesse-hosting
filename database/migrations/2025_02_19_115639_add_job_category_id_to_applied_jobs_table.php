@@ -8,7 +8,8 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('applied_jobs', function (Blueprint $table) {
-            $table->foreignUuid('job_category_id')->nullable()->constrained('job_categories')->nullOnDelete();
+            $table->unsignedBigInteger('job_category_id')->nullable(); // Correct type for foreign key reference
+            $table->foreign('job_category_id')->references('id')->on('job_categories')->onDelete('set null'); // Foreign key constraint
         });
     }
 
@@ -20,3 +21,4 @@ return new class extends Migration {
         });
     }
 };
+

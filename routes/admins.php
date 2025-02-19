@@ -5,6 +5,7 @@ use App\Http\Middleware\AuthenticateAdmin;
 use App\Http\Controllers\Api\Auth\Admin\AdminAuthController;
 use App\Http\Controllers\Api\Admin\JobCategory\JobCategoryController;
 use App\Http\Controllers\Api\Admin\JobSeeker\JobApplicationController;
+use App\Http\Controllers\Api\Admin\JobSeeker\JobSeekerRequestQuoteController;
 
 
 Route::prefix('auth/admin')->group(function () {
@@ -58,7 +59,10 @@ Route::prefix('admin')->group(function () {
 
 
 
-
+            Route::get('request-quotes', [JobSeekerRequestQuoteController::class, 'index']);
+            Route::get('request-quote/{id}', [JobSeekerRequestQuoteController::class, 'show']);
+            Route::post('request-quote/{id}/assign-job-seekers', [JobSeekerRequestQuoteController::class, 'assignJobSeekers']);
+            Route::put('request-quote/{id}/update-status', [JobSeekerRequestQuoteController::class, 'updateStatus']);
 
 
 

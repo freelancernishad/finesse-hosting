@@ -14,7 +14,7 @@ class CreateJobCategoriesTable extends Migration
     public function up()
     {
         Schema::create('job_categories', function (Blueprint $table) {
-            $table->id(); // Use category_id as primary key
+            $table->id();
             $table->string('category_id')->nullable(); // Use category_id as primary key
             $table->string('name')->unique(); // Unique category name
             $table->enum('status', ['active', 'inactive'])->default('active'); // Status field
