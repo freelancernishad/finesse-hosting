@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Api\Admin\JobSeeker;
 
-use App\Http\Controllers\Controller;
 use App\Models\JobSeeker;
 use App\Models\RequestQuote;
 use Illuminate\Http\Request;
+use App\Mail\ReviewRequestMail;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class JobSeekerRequestQuoteController extends Controller
@@ -58,7 +61,7 @@ class JobSeekerRequestQuoteController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'status' => 'required|in:completed,canceled', // Only valid statuses
+            'status' => 'required|in:assigned,completed,canceled', // Only valid statuses
             'job_seeker_ids' => 'required_if:status,assigned|array', // Only require job_seeker_ids if status is 'assigned'
             'job_seeker_ids.*' => 'exists:job_seekers,id', // Ensure all JobSeeker IDs exist
         ]);
@@ -82,6 +85,15 @@ class JobSeekerRequestQuoteController extends Controller
         $requestQuote->status = $request->status;
         $requestQuote->save();
 
+        // If status is 'completed', send an email for review
+        if ($request->status == 'completed') {
+            try {
+                Mail::to($requestQuote->email)->send(new ReviewRequestMail($requestQuote));
+                Log::info('Email sent successfully to: ' . $requestQuote->email);
+            } catch (\Exception $e) {
+                Log::error('Failed to send email: ' . $e->getMessage());
+            }
+        }
         return response()->json(['message' => 'RequestQuote status updated successfully!', 'request_quote' => $requestQuote]);
     }
 }
