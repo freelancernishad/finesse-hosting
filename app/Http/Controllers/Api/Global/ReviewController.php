@@ -184,12 +184,16 @@ class ReviewController extends Controller
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
+        // Get per_page from request, default to 10 if not provided
+        $perPage = $request->query('per_page', 10);
+
         $reviews = Review::where('job_seeker_id', $jobSeeker->id)
             ->latest()
-            ->paginate(10); // Paginate results (10 per page)
+            ->paginate($perPage); // Paginate dynamically
 
         return response()->json($reviews, 200);
     }
+
 
 
 }
