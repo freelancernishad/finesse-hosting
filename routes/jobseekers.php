@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\AuthenticateJobSeeker;
+use App\Http\Controllers\Api\Global\ReviewController;
 use App\Http\Controllers\Api\JobSeeker\JobSeekerController;
 use App\Http\Controllers\Api\JobSeeker\JobApplicationController;
 use App\Http\Controllers\Api\Auth\JobSeeker\JobSeekerAuthController; // JobSeekerAuthController
@@ -27,6 +28,11 @@ Route::prefix('jobseeker')->group(function () {
         Route::put('/update-profile', [JobSeekerController::class, 'updateProfile']);
         Route::post('/update-profile-picture', [JobSeekerController::class, 'updateProfilePicture']);
         Route::post('/update-resume', [JobSeekerController::class, 'updateResume']);
+
+
+
+        Route::get('/reviews', [ReviewController::class, 'getMyReviews']);
+
 
 
 

@@ -26,7 +26,9 @@ class JobSeeker extends Authenticatable implements JWTSubject
 
     // Append this field automatically when fetching the JobSeeker model
     protected $appends = [
-        'average_review_rating'
+        'average_review_rating',
+         'review_summary',
+        'total_reviews'
     ];
 
     /**
@@ -42,6 +44,7 @@ class JobSeeker extends Authenticatable implements JWTSubject
      *
      * @return float|null
      */
+
     public function getAverageReviewRatingAttribute()
     {
         // Get the average rating of all reviews (rounding to 1 decimal place)
@@ -50,6 +53,35 @@ class JobSeeker extends Authenticatable implements JWTSubject
         return $averageRating ? round($averageRating, 1) : 0; // Return null if no reviews exist
     }
 
+
+     /**
+     * Accessor: Get the count of each review rating (1 to 5 stars)
+     */
+    public function getReviewSummaryAttribute()
+    {
+        // Group by rating and count occurrences
+        $reviewCounts = $this->reviews()
+            ->selectRaw('rating, COUNT(*) as count')
+            ->groupBy('rating')
+            ->pluck('count', 'rating');
+
+        // Ensure all ratings (1-5) are included, even if they are 0
+        return [
+            '1_star' => $reviewCounts->get(1, 0),
+            '2_star' => $reviewCounts->get(2, 0),
+            '3_star' => $reviewCounts->get(3, 0),
+            '4_star' => $reviewCounts->get(4, 0),
+            '5_star' => $reviewCounts->get(5, 0),
+        ];
+    }
+
+    /**
+     * Accessor: Get the total number of reviews
+     */
+    public function getTotalReviewsAttribute()
+    {
+        return $this->reviews()->count();
+    }
 
     public function saveProfilePicture($file)
     {

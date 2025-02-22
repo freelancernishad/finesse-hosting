@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\Api\Global;
 
-use App\Http\Controllers\Controller;
 use App\Models\Review;
 use App\Models\JobSeeker;
 use App\Models\RequestQuote;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class ReviewController extends Controller
@@ -171,6 +172,24 @@ class ReviewController extends Controller
         ], 200);
     }
 
+
+      /**
+     * Get the latest reviews for the authenticated job seeker.
+     */
+    public function getMyReviews(Request $request)
+    {
+        $jobSeeker = Auth::guard('job_seeker')->user();
+
+        if (!$jobSeeker) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $reviews = Review::where('job_seeker_id', $jobSeeker->id)
+            ->latest()
+            ->paginate(10); // Paginate results (10 per page)
+
+        return response()->json($reviews, 200);
+    }
 
 
 }

@@ -26,11 +26,7 @@ class JobSeekerController extends Controller
             ], 401);
         }
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Profile retrieved successfully!',
-            'job_seeker' => $jobSeeker
-        ]);
+        return response()->json($jobSeeker);
     }
 
        /**
