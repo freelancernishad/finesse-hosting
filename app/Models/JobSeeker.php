@@ -35,6 +35,22 @@ class JobSeeker extends Authenticatable implements JWTSubject, MustVerifyEmail
         'approved_job_roles'
     ];
 
+    /**
+     * Accessor: Get the unique job categories where the job application is approved.
+     *
+     * @return array
+     */
+    public function getApprovedJobRolesAttribute()
+    {
+        return $this->appliedJobs()
+            ->where('status', 'approved') // Only fetch approved applications
+            ->pluck('category') // Get the category field directly
+            ->unique()
+            ->values()
+            ->toArray();
+    }
+
+
     // Accessor to check if the email is verified
     public function getEmailVerifiedAttribute()
     {
