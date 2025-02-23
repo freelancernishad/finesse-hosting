@@ -88,6 +88,45 @@ class JobApplicationController extends Controller
     }
 
 
+    /**
+     * Get the job list for the authenticated job seeker with pagination and status filter.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function getJobList(Request $request)
+    {
+        $jobSeeker = Auth::guard('job_seeker')->user();
+
+        if (!$jobSeeker) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Unauthorized access.',
+            ], 401);
+        }
+
+        // Get per_page value from request, default to 10
+        $perPage = $request->query('per_page', 10);
+
+        // Get status filter from request
+        $status = $request->query('status'); // Example values: 'pending', 'approved', 'rejected'
+
+        // Query applied jobs for the authenticated job seeker
+        $query = AppliedJob::where('job_seeker_id', $jobSeeker->id)->latest();
+
+        // Apply status filter if provided
+        if (!empty($status)) {
+            $query->where('status', $status);
+        }
+
+        // Paginate results
+        $appliedJobs = $query->paginate($perPage);
+
+        return response()->json($appliedJobs, 200);
+    }
+
+
+
 
 
 }

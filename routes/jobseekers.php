@@ -29,6 +29,7 @@ Route::prefix('jobseeker')->group(function () {
         Route::post('/update-profile-picture', [JobSeekerController::class, 'updateProfilePicture']);
         Route::post('/update-resume', [JobSeekerController::class, 'updateResume']);
 
+        Route::get('/job-applications', [JobApplicationController::class, 'getJobList']);
 
 
         Route::get('/reviews', [ReviewController::class, 'getMyReviews']);
