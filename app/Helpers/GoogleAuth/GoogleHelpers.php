@@ -133,7 +133,6 @@ function handleGoogleAuth(Request $request)
         $payload = [
             'email' => $jobSeeker->email,
             'name' => $jobSeeker->name,
-            'category' => $jobSeeker->category ?? 'default', // Assuming category might not be set
             'email_verified' => $jobSeeker->hasVerifiedEmail(),
         ];
 
