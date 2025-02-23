@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\Auth\JobSeeker\JobSeekerAuthController; // JobSeeke
 
 Route::prefix('auth/jobseeker')->group(function () { // Prefix for job seeker routes
     Route::post('login', [JobSeekerAuthController::class, 'login'])->name('jobseeker.login');
+    Route::post('/verify-otp', [JobSeekerAuthController::class, 'verifyOtp']);
+    Route::post('/resend-otp', [JobSeekerAuthController::class, 'resendOtp']);
     Route::post('register', [JobSeekerAuthController::class, 'register'])->name('jobseeker.register');
 
     Route::middleware(AuthenticateJobSeeker::class)->group(function () { // Applying jobseeker authentication middleware
