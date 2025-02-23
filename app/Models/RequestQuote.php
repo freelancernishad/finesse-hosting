@@ -22,6 +22,8 @@ class RequestQuote extends Model
         'number_of_guests',
         'event_location',
         'event_details',
+        'area', // Added area column
+        'type_of_hiring', // Added type_of_hiring column
     ];
 
     protected $casts = [
