@@ -20,63 +20,64 @@ class JobSeekerAuthController extends Controller
      * Register a new job seeker and send OTP for email verification.
      */
     public function register(Request $request)
-{
-    // Check if Google access token is provided
-    if ($request->access_token) {
-        return handleGoogleAuthForJobSeeker($request);
-    }
+    {
+        // Check if Google access token is provided
+        if ($request->access_token) {
+            return handleGoogleAuthForJobSeeker($request);
+        }
 
-    // Validate the input data
-    $validator = Validator::make($request->all(), [
-        'name' => 'required|string|max:255',
-        'email' => 'required|string|email|max:255',
-        'password' => 'required|string|min:8|confirmed',
-    ]);
+        // Validate the input data
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
 
-    if ($validator->fails()) {
-        return response()->json(['errors' => $validator->errors()], 400);
-    }
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
 
-    // Check if the email is already taken and if it's verified
-    $existingJobSeeker = JobSeeker::where('email', $request->email)->first();
-    
-    if ($existingJobSeeker) {
-        // If the email is taken but not verified
-        if (!$existingJobSeeker->email_verified) {
+        // Check if the email is already taken and if it's verified
+        $existingJobSeeker = JobSeeker::where('email', $request->email)->first();
+
+        if ($existingJobSeeker) {
+            // If the email is taken but not verified
+            if (!$existingJobSeeker->email_verified) {
+                return response()->json([
+                    'message' => 'This email is already registered but not verified. Please verify your email.',
+                    "email" => $request->email,
+                ], 400);
+            }
+            // If the email is already verified
             return response()->json([
-                'message' => 'This email is already registered but not verified. Please verify your email.',
+                'message' => 'This email is already registered and verified. Please log in.',
                 "email" => $request->email,
             ], 400);
         }
-        // If the email is already verified
+
+        // Generate OTP (this will only happen for new registrations)
+        $otp = rand(100000, 999999);
+        $otpExpiresAt = now()->addMinutes(10); // OTP expires in 10 minutes
+
+        // Create the new job seeker account
+        $jobSeeker = JobSeeker::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'otp' => $otp,
+            'otp_expires_at' => $otpExpiresAt,
+            'email_verified' => false,
+        ]);
+
+        // Send OTP via email
+        Mail::to($jobSeeker->email)->send(new JobSeekerOtpMail($otp));
+
         return response()->json([
-            'message' => 'This email is already registered and verified. Please log in.',
-            "email" => $request->email,
-        ], 400);
+            'message' => 'Registration successful! An OTP has been sent to your email.',
+            "email" => $jobSeeker->email,
+            "email_verified" => $jobSeeker->email_verified,
+        ], 201);
     }
-
-    // Generate OTP (this will only happen for new registrations)
-    $otp = rand(100000, 999999);
-    $otpExpiresAt = now()->addMinutes(10); // OTP expires in 10 minutes
-
-    // Create the new job seeker account
-    $jobSeeker = JobSeeker::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'password' => Hash::make($request->password),
-        'otp' => $otp,
-        'otp_expires_at' => $otpExpiresAt,
-        'email_verified' => false,
-    ]);
-
-    // Send OTP via email
-    Mail::to($jobSeeker->email)->send(new JobSeekerOtpMail($otp));
-
-    return response()->json([
-        'message' => 'Registration successful! An OTP has been sent to your email.',
-        "email" => $request->email,
-    ], 201);
-}
 
 
 
