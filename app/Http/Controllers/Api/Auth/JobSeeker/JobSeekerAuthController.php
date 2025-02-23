@@ -45,7 +45,7 @@ class JobSeekerAuthController extends Controller
         $payload = [
             'email' => $jobSeeker->email,
             'name' => $jobSeeker->name,
-            // Add additional fields as necessary
+            'email_verified' => $jobSeeker->hasVerifiedEmail(), // Check verification status
         ];
 
         try {
@@ -89,6 +89,13 @@ class JobSeekerAuthController extends Controller
                 'name' => $jobSeeker->name,
                 // Add additional fields as necessary
             ];
+
+            $payload = [
+                'email' => $jobSeeker->email,
+                'name' => $jobSeeker->name,
+                'email_verified' => $jobSeeker->hasVerifiedEmail(), // Check verification status
+            ];
+
 
             try {
                 // Generate a JWT token with custom claims
