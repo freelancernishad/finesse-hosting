@@ -28,8 +28,24 @@ class JobSeeker extends Authenticatable implements JWTSubject
     protected $appends = [
         'average_review_rating',
          'review_summary',
-        'total_reviews'
+        'total_reviews',
+        'approved_job_roles'
     ];
+
+    /**
+     * Accessor: Get the unique job categories where the job application is approved.
+     *
+     * @return array
+     */
+    public function getApprovedJobRolesAttribute()
+    {
+        return $this->appliedJobs()
+            ->where('status', 'approved') // Only fetch approved applications
+            ->pluck('category') // Get the category field directly
+            ->unique()
+            ->values()
+            ->toArray();
+    }
 
     /**
      * Relationship: JobSeekers reviews (Ratings and Comments)
