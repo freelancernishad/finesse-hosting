@@ -54,7 +54,9 @@ class JobSeekerAuthController extends Controller
         Mail::to($jobSeeker->email)->send(new JobSeekerOtpMail($otp));
 
         return response()->json([
+
             'message' => 'Registration successful! An OTP has been sent to your email.',
+            "email" => $request->email
         ], 201);
     }
 
