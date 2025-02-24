@@ -29,6 +29,11 @@ class RequestQuote extends Model
     protected $casts = [
         'categories' => 'array', // Store job categories as JSON
     ];
+    public function getCategoriesAttribute($value)
+{
+    return $value ? json_decode($value, true) : [];
+}
+
 
     public function user()
     {
