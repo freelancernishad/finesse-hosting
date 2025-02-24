@@ -33,11 +33,20 @@ class RequestQuote extends Model
     public function getCategoriesAttribute($value)
     {
         if (is_array($value)) {
-            return $value; // Return as-is if already an array
+            return $value; // Already an array
         }
     
-        return !empty($value) ? json_decode($value, true) : [];
+        // First decode attempt
+        $decoded = json_decode($value, true);
+    
+        // If decoding returns a string (meaning it was double-encoded), decode again
+        if (is_string($decoded)) {
+            return json_decode($decoded, true);
+        }
+    
+        return $decoded ?: [];
     }
+    
     
 
 
