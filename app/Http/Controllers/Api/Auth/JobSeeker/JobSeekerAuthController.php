@@ -217,4 +217,129 @@ class JobSeekerAuthController extends Controller
             ],
         ], 200);
     }
+
+
+     /**
+     * Get the authenticated job seeker.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function me(Request $request)
+    {
+        return response()->json(Auth::guard('job_seeker')->user());
+    }
+
+
+    /**
+     * Log out the authenticated job seeker.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function logout(Request $request)
+    {
+        // Get the Bearer token from the Authorization header
+        $token = $request->bearerToken();
+
+        // Check if the token is present
+        if (!$token) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token not provided.'
+            ], 401);
+        }
+
+        // Proceed with token invalidation
+        try {
+            // Blacklist the token by storing it in the blacklist table
+            TokenBlacklist($token);
+
+            // Invalidate the token
+            JWTAuth::setToken($token)->invalidate();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Logged out successfully.'
+            ], 200);
+        } catch (JWTException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error while processing token: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Change the password of the authenticated job seeker.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function changePassword(Request $request)
+    {
+        // Validate input using Validator
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:4|confirmed',
+        ]);
+
+        // Return validation errors if any
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Get the currently authenticated job seeker
+        $jobSeeker = Auth::guard('job_seeker')->user();
+
+        // Check if the current password matches
+        if (!Hash::check($request->current_password, $jobSeeker->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Current password is incorrect.'
+            ], 400);
+        }
+
+        // Update the password
+        $jobSeeker->password = Hash::make($request->new_password);
+        $jobSeeker->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password updated successfully.'
+        ], 200);
+    }
+
+    /**
+     * Check if a JWT token is valid.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function checkToken(Request $request)
+    {
+        $token = $request->bearerToken(); // Get the token from the Authorization header
+
+        if (!$token) {
+            return response()->json(['message' => 'Token not provided.'], 400);
+        }
+
+        try {
+            $jobSeeker = JWTAuth::setToken($token)->authenticate();
+
+            if (!$jobSeeker) {
+                return response()->json(['message' => 'Token is invalid or job seeker not found.'], 401);
+            }
+
+            return response()->json(["message"=>"Token is valid"], 200);
+        } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+            return response()->json(['message' => 'Token has expired.'], 401);
+        } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+            return response()->json(['message' => 'Token is invalid.'], 401);
+        } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
+            return response()->json(['message' => 'Token is missing or invalid.'], 401);
+        }
+    }
+
 }
