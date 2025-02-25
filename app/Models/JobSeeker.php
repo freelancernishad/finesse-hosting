@@ -14,12 +14,12 @@ class JobSeeker extends Authenticatable implements JWTSubject, MustVerifyEmail
 
     protected $fillable = [
         'name', 'member_id', 'id_no', 'phone_number', 'email',
-        'password', 'location', 'join_date', 'resume', 'profile_picture',
+        'password', 'location', 'post_code', 'city', 'country', 'join_date', 'resume', 'profile_picture',
         'email_verified_at', 'verification_token','otp', 'email_verified'
     ];
 
     protected $hidden = [
-        'password', 'remember_token', 'verification_token'
+        'password', 'remember_token', 'verification_token','otp'
     ];
 
     protected $casts = [

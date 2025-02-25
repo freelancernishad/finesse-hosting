@@ -34,7 +34,6 @@ class JobSeekerController extends Controller
      */
     public function updateProfile(Request $request)
     {
-        // Determine the authenticated job seeker
         if (Auth::guard('job_seeker')->check()) {
             $jobSeeker = Auth::guard('job_seeker')->user();
         } elseif (Auth::guard('admin')->check() && $request->has('job_seeker_id')) {
@@ -43,12 +42,14 @@ class JobSeekerController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // Validate request data
         $validator = Validator::make($request->all(), [
             'name' => 'nullable|string|max:255',
             'email' => 'nullable|email|unique:job_seekers,email,' . $jobSeeker->id,
             'phone_number' => 'nullable|string|max:15',
             'location' => 'nullable|string|max:255',
+            'post_code' => 'nullable|string|max:10',
+            'city' => 'nullable|string|max:100',
+            'country' => 'nullable|string|max:100',
             'join_date' => 'nullable|date',
             'password' => 'nullable|string|min:6|confirmed',
         ]);
@@ -57,8 +58,9 @@ class JobSeekerController extends Controller
             return response()->json(['errors' => $validator->errors()], 400);
         }
 
-        // Update fields if present
-        $jobSeeker->fill($request->only(['name', 'email', 'phone_number', 'location', 'join_date']));
+        $jobSeeker->fill($request->only([
+            'name', 'email', 'phone_number', 'location', 'post_code', 'city', 'country', 'join_date'
+        ]));
 
         if ($request->filled('password')) {
             $jobSeeker->password = Hash::make($request->password);
