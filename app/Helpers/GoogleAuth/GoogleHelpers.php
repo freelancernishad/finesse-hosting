@@ -143,10 +143,12 @@ function handleGoogleAuth(Request $request)
             return response()->json(['error' => 'Could not create token'], 500);
         }
 
+
         return response()->json([
             'token' => $token,
-            'user' => $payload,
+            'jobSeeker' => $payload,
         ], 200);
+
     } catch (\Exception $e) {
         return response()->json([
             'success' => false,
