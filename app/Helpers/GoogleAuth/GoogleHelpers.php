@@ -131,9 +131,15 @@ function handleGoogleAuth(Request $request)
 
         // Custom payload data
         $payload = [
-            'email' => $jobSeeker->email,
             'name' => $jobSeeker->name,
-            'email_verified' => $jobSeeker->hasVerifiedEmail(),
+            'email' => $jobSeeker->email,
+            'phone_number' => $jobSeeker->phone_number,
+            'location' => $jobSeeker->location,
+            'join_date' => $jobSeeker->join_date,
+            'post_code' => $jobSeeker->post_code,
+            'city' => $jobSeeker->city,
+            'country' => $jobSeeker->country,
+            'email_verified' => $jobSeeker->email_verified,
         ];
 
         try {

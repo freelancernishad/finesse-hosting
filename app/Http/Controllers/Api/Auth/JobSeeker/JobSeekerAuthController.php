@@ -207,15 +207,21 @@ class JobSeekerAuthController extends Controller
         } catch (JWTException $e) {
             return response()->json(['error' => 'Could not create token'], 500);
         }
-
         return response()->json([
             'token' => $token,
             'jobSeeker' => [
-                'email' => $jobSeeker->email,
                 'name' => $jobSeeker->name,
+                'email' => $jobSeeker->email,
+                'phone_number' => $jobSeeker->phone_number,
+                'location' => $jobSeeker->location,
+                'join_date' => $jobSeeker->join_date,
+                'post_code' => $jobSeeker->post_code,
+                'city' => $jobSeeker->city,
+                'country' => $jobSeeker->country,
                 'email_verified' => $jobSeeker->email_verified,
             ],
         ], 200);
+
     }
 
 
