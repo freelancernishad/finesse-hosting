@@ -96,4 +96,38 @@ class JobSeekerRequestQuoteController extends Controller
         }
         return response()->json(['message' => 'RequestQuote status updated successfully!', 'request_quote' => $requestQuote]);
     }
+
+
+    public function getAvailableJobSeekers(Request $request)
+    {
+        // Get all active RequestQuote category IDs (excluding "completed" ones)
+        $requestedCategoryIds = RequestQuote::where('status', '!=', 'completed')
+            ->get()
+            ->flatMap(fn($quote) => collect($quote->categories)->pluck('id'))
+            ->unique()
+            ->toArray();
+
+        // Get job seekers currently assigned to active RequestQuotes
+        $assignedJobSeekerIds = \DB::table('job_seeker_request_quote')
+            ->join('request_quotes', 'job_seeker_request_quote.request_quote_id', '=', 'request_quotes.id')
+            ->where('request_quotes.status', '!=', 'completed') // Exclude completed quotes
+            ->pluck('job_seeker_id')
+            ->toArray();
+
+        // Get unassigned job seekers
+        $unassignedJobSeekers = JobSeeker::whereNotIn('id', $assignedJobSeekerIds)->get();
+
+        // Filter job seekers whose applied job categories match any active RequestQuote categories
+        $matchingJobSeekers = $unassignedJobSeekers->filter(function ($jobSeeker) use ($requestedCategoryIds) {
+            $appliedCategoryIds = $jobSeeker->appliedJobs->pluck('category_id')->toArray();
+            return !empty(array_intersect($appliedCategoryIds, $requestedCategoryIds));
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $matchingJobSeekers->values(),
+        ]);
+    }
+
+
 }

@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Carbon\Carbon;
 
 class JobSeeker extends Authenticatable implements JWTSubject, MustVerifyEmail
 {
@@ -15,11 +16,11 @@ class JobSeeker extends Authenticatable implements JWTSubject, MustVerifyEmail
     protected $fillable = [
         'name', 'member_id', 'id_no', 'phone_number', 'email',
         'password', 'location', 'post_code', 'city', 'country', 'join_date', 'resume', 'profile_picture',
-        'email_verified_at', 'verification_token','otp', 'email_verified'
+        'email_verified_at', 'verification_token', 'otp', 'email_verified'
     ];
 
     protected $hidden = [
-        'password', 'remember_token', 'verification_token','otp'
+        'password', 'remember_token', 'verification_token', 'otp'
     ];
 
     protected $casts = [
@@ -32,34 +33,13 @@ class JobSeeker extends Authenticatable implements JWTSubject, MustVerifyEmail
         'average_review_rating',
         'review_summary',
         'total_reviews',
-        'approved_job_roles'
+        'approved_job_roles',
+        'last_review'
     ];
-
-    /**
-     * Accessor: Get the unique job categories where the job application is approved.
-     *
-     * @return array
-     */
-    public function getApprovedJobRolesAttribute()
-    {
-        return $this->appliedJobs()
-            ->where('status', 'approved') // Only fetch approved applications
-            ->pluck('category') // Get the category field directly
-            ->unique()
-            ->values()
-            ->toArray();
-    }
-
-
-    // Accessor to check if the email is verified
-    public function getEmailVerifiedAttribute()
-    {
-        return !is_null($this->email_verified_at);
-    }
 
     public function appliedJobs()
     {
-        return $this->hasMany(AppliedJob::class);
+        return $this->hasMany(AppliedJob::class)->where('status', 'approved')->select(['id', 'category', 'area']);
     }
 
     public function reviews()
@@ -67,26 +47,33 @@ class JobSeeker extends Authenticatable implements JWTSubject, MustVerifyEmail
         return $this->hasMany(Review::class, 'job_seeker_id');
     }
 
+    public function getApprovedJobRolesAttribute()
+    {
+        return $this->appliedJobs
+            ->pluck('category')
+            ->unique()
+            ->values()
+            ->toArray();
+    }
+
+    public function getEmailVerifiedAttribute()
+    {
+        return !is_null($this->email_verified_at);
+    }
+
     public function getAverageReviewRatingAttribute()
     {
-        $averageRating = $this->reviews()->avg('rating');
-        return $averageRating ? round($averageRating, 1) : 0;
+        return round($this->reviews()->avg('rating') ?? 0, 1);
     }
 
     public function getReviewSummaryAttribute()
     {
-        $reviewCounts = $this->reviews()
+        return $this->reviews()
             ->selectRaw('rating, COUNT(*) as count')
             ->groupBy('rating')
-            ->pluck('count', 'rating');
-
-        return [
-            '1_star' => $reviewCounts->get(1, 0),
-            '2_star' => $reviewCounts->get(2, 0),
-            '3_star' => $reviewCounts->get(3, 0),
-            '4_star' => $reviewCounts->get(4, 0),
-            '5_star' => $reviewCounts->get(5, 0),
-        ];
+            ->pluck('count', 'rating')
+            ->union([1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0])
+            ->toArray();
     }
 
     public function getTotalReviewsAttribute()
@@ -94,34 +81,38 @@ class JobSeeker extends Authenticatable implements JWTSubject, MustVerifyEmail
         return $this->reviews()->count();
     }
 
+    public function getLastReviewAttribute()
+    {
+        $review = $this->reviews()->latest()->first();
+        if (!$review) return null;
+
+        return [
+            'reviewer_name' => $review->reviewer_name,
+            'title' => $review->title,
+            'comment' => $review->comment,
+            'created_at' => Carbon::parse($review->created_at)->diffForHumans()
+        ];
+    }
+
     public function saveProfilePicture($file)
     {
-        $folderPath = $this->member_id;
-        $filePath = uploadFileToS3($file, 'profile_pictures/' . $folderPath);
-        $this->profile_picture = $filePath;
-        $this->save();
-
-        return $filePath;
+        $filePath = uploadFileToS3($file, 'profile_pictures/' . $this->member_id);
+        return tap($this)->update(['profile_picture' => $filePath])->profile_picture;
     }
 
     public function saveResume($file)
     {
-        $folderPath = $this->member_id;
-        $filePath = uploadFileToS3($file, 'resumes/' . $folderPath);
-        $this->resume = $filePath;
-        $this->save();
-
-        return $filePath;
+        $filePath = uploadFileToS3($file, 'resumes/' . $this->member_id);
+        return tap($this)->update(['resume' => $filePath])->resume;
     }
 
     protected static function boot()
     {
         parent::boot();
-
-        static::creating(function ($jobSeeker) {
-            $jobSeeker->member_id = static::generateUniqueMemberId();
-            $jobSeeker->verification_token = \Str::random(60);
-        });
+        static::creating(fn($jobSeeker) => $jobSeeker->fill([
+            'member_id' => static::generateUniqueMemberId(),
+            'verification_token' => \Str::random(60)
+        ]));
     }
 
     protected static function generateUniqueMemberId(): int
@@ -129,7 +120,6 @@ class JobSeeker extends Authenticatable implements JWTSubject, MustVerifyEmail
         do {
             $memberId = mt_rand(100000, 999999);
         } while (static::where('member_id', $memberId)->exists());
-
         return $memberId;
     }
 

@@ -72,6 +72,8 @@ Route::prefix('admin')->group(function () {
 
 
 
+            Route::get('/available-job-seekers', [JobSeekerRequestQuoteController::class, 'getAvailableJobSeekers']);
+
             Route::get('request-quotes', [JobSeekerRequestQuoteController::class, 'index']);
             Route::get('request-quote/{id}', [JobSeekerRequestQuoteController::class, 'show']);
             Route::post('request-quote/{id}/assign-job-seekers', [JobSeekerRequestQuoteController::class, 'assignJobSeekers']);
