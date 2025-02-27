@@ -99,35 +99,70 @@ class JobSeekerRequestQuoteController extends Controller
 
 
     public function getAvailableJobSeekers(Request $request)
-    {
-        // Get all active RequestQuote category IDs (excluding "completed" ones)
-        $requestedCategoryIds = RequestQuote::where('status', '!=', 'completed')
-            ->get()
-            ->flatMap(fn($quote) => collect($quote->categories)->pluck('id'))
-            ->unique()
-            ->toArray();
+{
+    // Validate request
+    $request->validate([
+        'request_quote_id' => 'nullable|exists:request_quotes,id', // Nullable to allow missing request_quote_id
+        'per_page' => 'nullable|integer|min:1', // Validate per_page to ensure it's a positive integer
+    ]);
 
-        // Get job seekers currently assigned to active RequestQuotes
+    // Default per_page to 10 if not provided
+    $perPage = $request->input('per_page', 10);
+
+    // Initialize the query for job seekers
+    $query = JobSeeker::query();
+
+    // If request_quote_id is provided, filter based on it
+    if ($request->has('request_quote_id')) {
+        // Get the RequestQuote
+        $requestQuote = RequestQuote::findOrFail($request->request_quote_id);
+
+        // Extract requested category names
+        $requestedCategoryNames = collect($requestQuote->categories)->pluck('name')->toArray();
+
+        // Get job seekers assigned to active RequestQuotes
         $assignedJobSeekerIds = \DB::table('job_seeker_request_quote')
             ->join('request_quotes', 'job_seeker_request_quote.request_quote_id', '=', 'request_quotes.id')
-            ->where('request_quotes.status', '!=', 'completed') // Exclude completed quotes
+            ->where('request_quotes.status', '!=', 'completed') // Exclude completed ones
             ->pluck('job_seeker_id')
             ->toArray();
 
-        // Get unassigned job seekers
-        $unassignedJobSeekers = JobSeeker::whereNotIn('id', $assignedJobSeekerIds)->get();
+        // If no job seekers are assigned, consider the array empty and return all unassigned job seekers
+        if (empty($assignedJobSeekerIds)) {
+            $assignedJobSeekerIds = [0]; // Ensures no job seekers are excluded
+        }
 
-        // Filter job seekers whose applied job categories match any active RequestQuote categories
-        $matchingJobSeekers = $unassignedJobSeekers->filter(function ($jobSeeker) use ($requestedCategoryIds) {
-            $appliedCategoryIds = $jobSeeker->appliedJobs->pluck('category_id')->toArray();
-            return !empty(array_intersect($appliedCategoryIds, $requestedCategoryIds));
+        // Filter the unassigned job seekers who have at least one matching applied job category
+        $query->whereNotIn('id', $assignedJobSeekerIds)
+            ->whereHas('appliedJobs', function ($query) use ($requestedCategoryNames) {
+                $query->whereIn('category', $requestedCategoryNames);
+            });
+    } else {
+        // If no request_quote_id is provided, return job seekers who have matching categories
+        // Job seekers who have applied jobs in matching categories
+        $query->whereHas('appliedJobs', function ($query) {
+            // Apply your own logic here if necessary, for example, filtering by category
+            // For now, we'll match all categories by default
+            $query->whereNotNull('category');
         });
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $matchingJobSeekers->values(),
-        ]);
     }
+
+    // Get the filtered/unfiltered job seekers based on the query conditions, with pagination
+    $availableJobSeekers = $query->paginate($perPage);
+
+    // Return the response with pagination data
+    return response()->json([
+        'status' => 'success',
+        'data' => $availableJobSeekers,
+    ]);
+}
+
+
+
+
+
+
+
 
 
 }

@@ -17,6 +17,7 @@ class JobSeekerController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    
     public function index()
     {
         $jobSeekers = JobSeeker::all();
