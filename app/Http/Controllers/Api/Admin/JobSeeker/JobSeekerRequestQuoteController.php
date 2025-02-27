@@ -151,10 +151,7 @@ class JobSeekerRequestQuoteController extends Controller
     $availableJobSeekers = $query->paginate($perPage);
 
     // Return the response with pagination data
-    return response()->json([
-        'status' => 'success',
-        'data' => $availableJobSeekers,
-    ]);
+    return response()->json($availableJobSeekers);
 }
 
 

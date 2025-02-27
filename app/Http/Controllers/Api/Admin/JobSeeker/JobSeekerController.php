@@ -17,13 +17,24 @@ class JobSeekerController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    
-    public function index()
-    {
-        $jobSeekers = JobSeeker::all();
 
+    public function index(Request $request)
+    {
+        // Validate per_page input, set default to 10 if not provided
+        $request->validate([
+            'per_page' => 'nullable|integer|min:1', // Validate per_page as an integer and ensure it's at least 1
+        ]);
+
+        // Default per_page to 10 if not provided
+        $perPage = $request->input('per_page', 10);
+
+        // Retrieve paginated job seekers
+        $jobSeekers = JobSeeker::paginate($perPage);
+
+        // Return the paginated job seekers
         return response()->json($jobSeekers, 200);
     }
+
 
     /**
      * Store a newly created JobSeeker.
