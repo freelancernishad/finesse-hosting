@@ -22,8 +22,9 @@ class RequestQuote extends Model
         'number_of_guests',
         'event_location',
         'event_details',
-        'area', // Added area column
-        'type_of_hiring', // Added type_of_hiring column
+        'area',
+        'type_of_hiring',
+        'budget'
     ];
 
     protected $casts = [
@@ -35,19 +36,19 @@ class RequestQuote extends Model
         if (is_array($value)) {
             return $value; // Already an array
         }
-    
+
         // First decode attempt
         $decoded = json_decode($value, true);
-    
+
         // If decoding returns a string (meaning it was double-encoded), decode again
         if (is_string($decoded)) {
             return json_decode($decoded, true);
         }
-    
+
         return $decoded ?: [];
     }
-    
-    
+
+
 
 
     public function user()

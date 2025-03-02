@@ -158,6 +158,58 @@ class JobSeekerRequestQuoteController extends Controller
 
 
 
+    public function confirmQuote(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'area' => 'required|string',
+            'name' => 'required|string',
+            'email' => 'required|email',
+            'phone' => 'required|string',
+            'how_did_you_hear' => 'required|string',
+            'event_date' => 'required|date',
+            'start_time' => 'required|string',
+            'categories' => 'required|array',
+            'categories.*.id' => 'required|integer',
+            'categories.*.name' => 'required|string',
+            'categories.*.count' => 'required|integer',
+            'number_of_guests' => 'required|integer',
+            'event_location' => 'required|string',
+            'event_details' => 'required|string',
+            'type_of_hiring' => 'required|string',
+            'budget' => 'required|numeric',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
+        }
+
+        $requestQuote = RequestQuote::find($id);
+
+        if (!$requestQuote) {
+            return response()->json(['message' => 'RequestQuote not found'], 404);
+        }
+
+        // Update RequestQuote details
+        $requestQuote->update([
+            'area' => $request->area,
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'how_did_you_hear' => $request->how_did_you_hear,
+            'event_date' => $request->event_date,
+            'start_time' => $request->start_time,
+            'number_of_guests' => $request->number_of_guests,
+            'event_location' => $request->event_location,
+            'event_details' => $request->event_details,
+            'type_of_hiring' => $request->type_of_hiring,
+            'budget' => $request->budget,
+            'status' => 'confirmed',
+            'categories' => json_encode($request->categories), // Store categories as JSON
+        ]);
+
+        return response()->json(['message' => 'RequestQuote confirmed successfully!', 'request_quote' => $requestQuote]);
+    }
+
 
 
 
