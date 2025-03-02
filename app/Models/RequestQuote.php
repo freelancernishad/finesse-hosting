@@ -57,10 +57,18 @@ class RequestQuote extends Model
     }
 
         // Many-to-many relationship with JobSeeker
+        // public function jobSeekers()
+        // {
+        //     return $this->belongsToMany(JobSeeker::class, 'job_seeker_request_quote', 'request_quote_id', 'job_seeker_id');
+        // }
+
+
         public function jobSeekers()
         {
-            return $this->belongsToMany(JobSeeker::class, 'job_seeker_request_quote', 'request_quote_id', 'job_seeker_id');
+            return $this->belongsToMany(JobSeeker::class, 'job_seeker_request_quote', 'request_quote_id', 'job_seeker_id')
+                        ->withPivot('salary');  // Include the salary field
         }
+
 
 
         // Update status and assign JobSeekers

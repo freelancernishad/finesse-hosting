@@ -16,10 +16,33 @@ class JobSeekerRequestQuoteController extends Controller
     // Get all RequestQuotes with related JobSeekers
     public function index()
     {
-        $requestQuotes = RequestQuote::with('jobSeekers')->get();
+        $requestQuotes = RequestQuote::with([
+            'jobSeekers' => function ($query) {
+                $query->select('job_seekers.id', 'job_seekers.name', 'job_seekers.member_id')
+                      ->withPivot('salary');
+            }
+        ])->get(['id', 'user_id', 'name', 'email', 'phone']); // Select only necessary columns
+
+        // Use makeHidden to efficiently hide appended attributes without looping
+        $requestQuotes->each(function ($requestQuote) {
+            $requestQuote->jobSeekers->each(function ($jobSeeker) {
+                // Hide the attributes from the response
+                $jobSeeker->makeHidden([
+                    'average_review_rating',
+                    'review_summary',
+                    'total_reviews',
+                    'approved_job_roles',
+                    'last_review'
+                ]);
+            });
+        });
 
         return response()->json($requestQuotes);
     }
+
+
+
+
 
     // Show a specific RequestQuote with JobSeekers
     public function show($id)
@@ -37,8 +60,9 @@ class JobSeekerRequestQuoteController extends Controller
     public function assignJobSeekers(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'job_seeker_ids' => 'required|array',
-            'job_seeker_ids.*' => 'exists:job_seekers,id', // Ensure all JobSeeker IDs exist
+            'job_seekers' => 'required|array',
+            'job_seekers.*.id' => 'exists:job_seekers,id',
+            'job_seekers.*.salary' => 'required|numeric|min:0'
         ]);
 
         if ($validator->fails()) {
@@ -51,8 +75,14 @@ class JobSeekerRequestQuoteController extends Controller
             return response()->json(['message' => 'RequestQuote not found'], 404);
         }
 
-        // Assign JobSeekers to the RequestQuote
-        $requestQuote->assignJobSeekers($request->job_seeker_ids);
+        // Prepare data for syncing
+        $jobSeekerData = [];
+        foreach ($request->job_seekers as $jobSeeker) {
+            $jobSeekerData[$jobSeeker['id']] = ['salary' => $jobSeeker['salary']];
+        }
+
+        // Sync job seekers with salaries
+        $requestQuote->jobSeekers()->sync($jobSeekerData);
 
         return response()->json(['message' => 'JobSeekers assigned successfully!', 'request_quote' => $requestQuote]);
     }

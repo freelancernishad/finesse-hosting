@@ -136,4 +136,11 @@ class JobSeeker extends Authenticatable implements JWTSubject, MustVerifyEmail
             'email_verified' => !is_null($this->email_verified_at),
         ];
     }
+
+    public function requestQuotes()
+    {
+        return $this->belongsToMany(RequestQuote::class, 'job_seeker_request_quote', 'job_seeker_id', 'request_quote_id')
+                    ->withPivot('salary');  // Include the salary field
+    }
+
 }
