@@ -18,22 +18,43 @@ class JobSeekerController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-    public function index(Request $request)
-    {
-        // Validate per_page input, set default to 10 if not provided
-        $request->validate([
-            'per_page' => 'nullable|integer|min:1', // Validate per_page as an integer and ensure it's at least 1
-        ]);
+     public function index(Request $request)
+     {
+         // Validate per_page input, set default to 10 if not provided
+         $request->validate([
+             'per_page' => 'nullable|integer|min:1', // Ensure per_page is an integer and at least 1
+         ]);
 
-        // Default per_page to 10 if not provided
-        $perPage = $request->input('per_page', 10);
+         $perPage = $request->input('per_page', 10);
 
-        // Retrieve paginated job seekers
-        $jobSeekers = JobSeeker::paginate($perPage);
+         // Retrieve paginated job seekers with requestQuotes to prevent N+1 queries
+         $jobSeekers = JobSeeker::with(['requestQuotes']) // Load only necessary fields with(['requestQuotes:id,name'])
+             ->paginate($perPage);
 
-        // Return the paginated job seekers
-        return response()->json($jobSeekers, 200);
-    }
+         // Transform response to include assigned quote details
+         $jobSeekers->getCollection()->transform(function ($jobSeeker) {
+             return [
+                 'id' => $jobSeeker->id,
+                 'name' => $jobSeeker->name,
+                 'email' => $jobSeeker->email,
+                 'phone_number' => $jobSeeker->phone_number,
+                 'location' => $jobSeeker->location,
+                 'is_assigned_quote' => $jobSeeker->requestQuotes->isNotEmpty(), // Check if assigned any quote
+                 'assigned_quotes' => $jobSeeker->requestQuotes->map(function ($quote) {
+                     return $quote;
+
+
+                    //  return [
+                    //      'id' => $quote->id,
+                    //      'name' => $quote->name,
+                    //  ];
+                 }),
+             ];
+         });
+
+         return response()->json($jobSeekers, 200);
+     }
+
 
 
     /**
