@@ -24,6 +24,7 @@ class RequestQuote extends Model
         'event_details',
         'area',
         'type_of_hiring',
+        'status',
         'budget'
     ];
 
