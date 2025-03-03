@@ -191,22 +191,22 @@ class JobSeekerRequestQuoteController extends Controller
     public function confirmQuote(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'area' => 'required|string',
-            'name' => 'required|string',
-            'email' => 'required|email',
-            'phone' => 'required|string',
-            'how_did_you_hear' => 'required|string',
-            'event_date' => 'required|date',
-            'start_time' => 'required|string',
-            'categories' => 'required|array',
-            'categories.*.id' => 'required|integer',
-            'categories.*.name' => 'required|string',
-            'categories.*.count' => 'required|integer',
-            'number_of_guests' => 'required|integer',
-            'event_location' => 'required|string',
-            'event_details' => 'required|string',
-            'type_of_hiring' => 'required|string',
-            'budget' => 'required|numeric',
+            'area' => 'nullable|string',
+            'name' => 'nullable|string',
+            'email' => 'nullable|email',
+            'phone' => 'nullable|string',
+            'how_did_you_hear' => 'nullable|string',
+            'event_date' => 'nullable|date',
+            'start_time' => 'nullable|string',
+            'categories' => 'nullable|array',
+            'categories.*.id' => 'nullable|integer',
+            'categories.*.name' => 'nullable|string',
+            'categories.*.count' => 'nullable|integer',
+            'number_of_guests' => 'nullable|integer',
+            'event_location' => 'nullable|string',
+            'event_details' => 'nullable|string',
+            'type_of_hiring' => 'nullable|string',
+            'budget' => 'nullable|numeric',
         ]);
 
         if ($validator->fails()) {
