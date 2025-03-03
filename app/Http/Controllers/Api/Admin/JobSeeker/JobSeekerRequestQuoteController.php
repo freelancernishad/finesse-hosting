@@ -14,19 +14,28 @@ use Illuminate\Support\Facades\Validator;
 class JobSeekerRequestQuoteController extends Controller
 {
     // Get all RequestQuotes with related JobSeekers
-    public function index()
+    public function index(Request $request)
     {
-        $requestQuotes = RequestQuote::with([
+        $perPage = $request->input('per_page', 10); // Default to 10 per page
+        $status = $request->input('status'); // Get status filter from request
+    
+        $query = RequestQuote::with([
             'jobSeekers' => function ($query) {
                 $query->select('job_seekers.id', 'job_seekers.name', 'job_seekers.member_id')
                       ->withPivot('salary');
             }
-        ])->get(); // Select only necessary columns
-
-        // Use makeHidden to efficiently hide appended attributes without looping
-        $requestQuotes->each(function ($requestQuote) {
+        ]);
+    
+        // Apply status filter if provided
+        if (!empty($status)) {
+            $query->where('status', $status);
+        }
+    
+        $requestQuotes = $query->paginate($perPage); // Apply pagination
+    
+        // Hide attributes from jobSeekers
+        $requestQuotes->getCollection()->each(function ($requestQuote) {
             $requestQuote->jobSeekers->each(function ($jobSeeker) {
-                // Hide the attributes from the response
                 $jobSeeker->makeHidden([
                     'average_review_rating',
                     'review_summary',
@@ -36,9 +45,11 @@ class JobSeekerRequestQuoteController extends Controller
                 ]);
             });
         });
-
+    
         return response()->json($requestQuotes);
     }
+    
+
 
 
 
