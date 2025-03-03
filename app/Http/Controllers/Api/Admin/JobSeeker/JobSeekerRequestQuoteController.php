@@ -21,7 +21,7 @@ class JobSeekerRequestQuoteController extends Controller
                 $query->select('job_seekers.id', 'job_seekers.name', 'job_seekers.member_id')
                       ->withPivot('salary');
             }
-        ])->get(['id', 'user_id', 'name', 'email', 'phone']); // Select only necessary columns
+        ])->get(); // Select only necessary columns
 
         // Use makeHidden to efficiently hide appended attributes without looping
         $requestQuotes->each(function ($requestQuote) {
