@@ -31,7 +31,7 @@ Route::prefix('admin')->group(function () {
         Route::prefix('/job-seeker')->group(function () {
             Route::get('/', [JobSeekerController::class, 'index']); // List all JobSeekers
             Route::post('/', [JobSeekerController::class, 'store']); // Create a new JobSeeker
-            Route::get('{id}', [JobSeekerController::class, 'show']); // Show a specific JobSeeker
+            Route::get('{id}', [App\Http\Controllers\Api\JobSeeker\JobSeekerController::class, 'getProfile']); // Show a specific JobSeeker
             Route::post('{id}', [JobSeekerController::class, 'update']); // Update a JobSeeker
             Route::delete('{id}', [JobSeekerController::class, 'destroy']); // Delete a JobSeeker
             Route::get('/request-quote/{requestQuoteId}/job-seekers', [JobSeekerController::class, 'getJobSeekersByRequestQuote']); // Get JobSeekers by RequestQuote

@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-
 class RequestQuote extends Model
 {
     use HasFactory;
@@ -32,51 +31,38 @@ class RequestQuote extends Model
         'categories' => 'array', // Store job categories as JSON
     ];
 
-    public function getCategoriesAttribute($value)
+    protected $appends = ['rating', 'review_comment'];
+
+    // Relationship: Many-to-many with JobSeekers
+    public function jobSeekers()
     {
-        if (is_array($value)) {
-            return $value; // Already an array
-        }
-
-        // First decode attempt
-        $decoded = json_decode($value, true);
-
-        // If decoding returns a string (meaning it was double-encoded), decode again
-        if (is_string($decoded)) {
-            return json_decode($decoded, true);
-        }
-
-        return $decoded ?: [];
+        return $this->belongsToMany(JobSeeker::class, 'job_seeker_request_quote', 'request_quote_id', 'job_seeker_id')
+                    ->withPivot('salary');  // Include the salary field
     }
 
-
-
-
-    public function user()
+    // Relationship: Single Review for this RequestQuote
+    public function review()
     {
-        return $this->belongsTo(User::class);
+        return $this->hasOne(Review::class, 'request_quote_id');
     }
 
-        // Many-to-many relationship with JobSeeker
-        // public function jobSeekers()
-        // {
-        //     return $this->belongsToMany(JobSeeker::class, 'job_seeker_request_quote', 'request_quote_id', 'job_seeker_id');
-        // }
+    // Accessor: Get the rating from the single review
+    public function getRatingAttribute()
+    {
+        return $this->review ? $this->review->rating : null; // Return null if no review
+    }
 
+    // Accessor: Get the review comment
+    public function getReviewCommentAttribute()
+    {
+        return $this->review ? $this->review->comment : null; // Return null if no review
+    }
 
-        public function jobSeekers()
-        {
-            return $this->belongsToMany(JobSeeker::class, 'job_seeker_request_quote', 'request_quote_id', 'job_seeker_id')
-                        ->withPivot('salary');  // Include the salary field
-        }
-
-
-
-        // Update status and assign JobSeekers
-        public function assignJobSeekers($jobSeekerIds)
-        {
-            $this->jobSeekers()->sync($jobSeekerIds);  // Sync job seekers with the request quote
-            $this->status = 'assigned';  // Set status to assigned
-            $this->save();
-        }
+    // Update status and assign JobSeekers
+    public function assignJobSeekers($jobSeekerIds)
+    {
+        $this->jobSeekers()->sync($jobSeekerIds);  // Sync job seekers with the request quote
+        $this->status = 'assigned';  // Set status to assigned
+        $this->save();
+    }
 }

@@ -16,18 +16,60 @@ class JobSeekerController extends Controller
     /**
      * Get Authenticated Job Seeker Profile
      */
-    public function getProfile(Request $request)
+    public function getProfile(Request $request, $id = null)
     {
-        $jobSeeker = Auth::guard('job_seeker')->user();
+        if (Auth::guard('admin')->check()) {
+            // Admin is authenticated, fetch JobSeeker by ID
+            $jobSeeker = JobSeeker::with(['requestQuotes' => function ($query) {
+                $query->whereIn('status', ['assigned', 'completed']); // Fetch both assigned and completed quotes
+            }])->findOrFail($id);
+        } else {
+            // Otherwise, authenticate as JobSeeker
+            $jobSeeker = Auth::guard('job_seeker')->user();
+            if (!$jobSeeker) {
+                return response()->json([
+                    'message' => 'Unauthorized',
+                ], 401);
+            }
 
-        if (!$jobSeeker) {
-            return response()->json([
-                'message' => 'Unauthorized',
-            ], 401);
+            // Load assigned & completed request quotes for the job seeker
+            $jobSeeker->load(['requestQuotes' => function ($query) {
+                $query->whereIn('status', ['assigned', 'completed']); // Fetch both assigned and completed quotes
+            }]);
         }
 
-        return response()->json($jobSeeker);
+        return response()->json([
+            'id' => $jobSeeker->id,
+            'name' => $jobSeeker->name,
+            'member_id' => $jobSeeker->member_id,
+            'id_no' => $jobSeeker->id_no,
+            'phone_number' => $jobSeeker->phone_number,
+            'email' => $jobSeeker->email,
+            'email_verified_at' => $jobSeeker->email_verified_at,
+            'otp_expires_at' => $jobSeeker->otp_expires_at,
+            'email_verified' => $jobSeeker->email_verified,
+            'location' => $jobSeeker->location,
+            'post_code' => $jobSeeker->post_code,
+            'city' => $jobSeeker->city,
+            'country' => $jobSeeker->country,
+            'join_date' => $jobSeeker->join_date,
+            'resume' => $jobSeeker->resume,
+            'profile_picture' => $jobSeeker->profile_picture,
+            'created_at' => $jobSeeker->created_at,
+            'updated_at' => $jobSeeker->updated_at,
+            'average_review_rating' => $jobSeeker->average_review_rating,
+            'review_summary' => $jobSeeker->review_summary,
+            'total_reviews' => $jobSeeker->total_reviews,
+            'approved_job_roles' => $jobSeeker->approved_job_roles,
+            'last_review' => $jobSeeker->last_review,
+            'applied_jobs' => $jobSeeker->applied_jobs,
+            'is_assigned_quote' => $jobSeeker->requestQuotes->where('status', 'assigned')->isNotEmpty(),
+            'assigned_quotes' => $jobSeeker->requestQuotes->where('status', 'assigned')->values(),
+            'completed_quotes' => $jobSeeker->requestQuotes->where('status', 'completed')->values(),
+        ]);
     }
+
+
 
        /**
      * Update the full profile of the job seeker.

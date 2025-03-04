@@ -27,9 +27,10 @@ class JobSeekerController extends Controller
 
          $perPage = $request->input('per_page', 10);
 
-         // Retrieve paginated job seekers with requestQuotes to prevent N+1 queries
-         $jobSeekers = JobSeeker::with(['requestQuotes:id']) // Load only necessary fields with(['requestQuotes:id,name'])
-             ->paginate($perPage);
+         // Retrieve paginated job seekers with assigned requestQuotes only
+         $jobSeekers = JobSeeker::with(['requestQuotes' => function ($query) {
+             $query->where('status', 'assigned'); // Only fetch assigned quotes
+         }])->paginate($perPage);
 
          // Transform response to include assigned quote details
          $jobSeekers->getCollection()->transform(function ($jobSeeker) {
@@ -43,23 +44,25 @@ class JobSeekerController extends Controller
                  'average_review_rating' => $jobSeeker->average_review_rating,
                  'total_reviews' => $jobSeeker->total_reviews,
 
-
-
                  'is_assigned_quote' => $jobSeeker->requestQuotes->isNotEmpty(), // Check if assigned any quote
                  'assigned_quotes' => $jobSeeker->requestQuotes->map(function ($quote) {
-                     return $quote;
 
 
-                    //  return [
+                    return $quote;
+                    // return [
                     //      'id' => $quote->id,
                     //      'name' => $quote->name,
+                    //      'status' => $quote->status, // Include status for clarity
                     //  ];
+
+
                  }),
              ];
          });
 
          return response()->json($jobSeekers, 200);
      }
+
 
 
 
@@ -121,13 +124,43 @@ class JobSeekerController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show($id)
-    {
-        $jobSeeker = JobSeeker::findOrFail($id);
+{
+    $jobSeeker = JobSeeker::with(['requestQuotes' => function ($query) {
+        $query->whereIn('status', ['assigned', 'completed']); // Fetch both assigned and completed quotes
+    }])->findOrFail($id);
 
-        return response()->json([
-            'job_seeker' => $jobSeeker
-        ], 200);
-    }
+    return response()->json([
+        'id' => $jobSeeker->id,
+        'name' => $jobSeeker->name,
+        'member_id' => $jobSeeker->member_id,
+        'id_no' => $jobSeeker->id_no,
+        'phone_number' => $jobSeeker->phone_number,
+        'email' => $jobSeeker->email,
+        'email_verified_at' => $jobSeeker->email_verified_at,
+        'otp_expires_at' => $jobSeeker->otp_expires_at,
+        'email_verified' => $jobSeeker->email_verified,
+        'location' => $jobSeeker->location,
+        'post_code' => $jobSeeker->post_code,
+        'city' => $jobSeeker->city,
+        'country' => $jobSeeker->country,
+        'join_date' => $jobSeeker->join_date,
+        'resume' => $jobSeeker->resume,
+        'profile_picture' => $jobSeeker->profile_picture,
+        'created_at' => $jobSeeker->created_at,
+        'updated_at' => $jobSeeker->updated_at,
+        'average_review_rating' => $jobSeeker->average_review_rating,
+        'review_summary' => $jobSeeker->review_summary,
+        'total_reviews' => $jobSeeker->total_reviews,
+        'approved_job_roles' => $jobSeeker->approved_job_roles,
+        'last_review' => $jobSeeker->last_review,
+        'applied_jobs' => $jobSeeker->applied_jobs,
+        'is_assigned_quote' => $jobSeeker->requestQuotes->where('status', 'assigned')->isNotEmpty(),
+        'assigned_quotes' => $jobSeeker->requestQuotes->where('status', 'assigned')->values(),
+        'completed_quotes' => $jobSeeker->requestQuotes->where('status', 'completed')->values(),
+    ]);
+}
+
+
 
     /**
      * Update the specified JobSeeker.
