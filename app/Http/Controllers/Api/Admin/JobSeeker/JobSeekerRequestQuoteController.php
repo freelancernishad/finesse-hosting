@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers\Api\Admin\JobSeeker;
 
+use Stripe\Stripe;
 use App\Models\JobSeeker;
 use App\Models\RequestQuote;
 use Illuminate\Http\Request;
+use Stripe\Checkout\Session;
 use App\Mail\ReviewRequestMail;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
+use App\Mail\RequestQuotePaymentMail;
 use Illuminate\Support\Facades\Validator;
 
 class JobSeekerRequestQuoteController extends Controller
@@ -18,21 +21,21 @@ class JobSeekerRequestQuoteController extends Controller
     {
         $perPage = $request->input('per_page', 10); // Default to 10 per page
         $status = $request->input('status'); // Get status filter from request
-    
+
         $query = RequestQuote::with([
             'jobSeekers' => function ($query) {
                 $query->select('job_seekers.id', 'job_seekers.name', 'job_seekers.member_id')
                       ->withPivot('salary');
             }
         ]);
-    
+
         // Apply status filter if provided
         if (!empty($status)) {
             $query->where('status', $status);
         }
-    
+
         $requestQuotes = $query->paginate($perPage); // Apply pagination
-    
+
         // Hide attributes from jobSeekers
         $requestQuotes->getCollection()->each(function ($requestQuote) {
             $requestQuote->jobSeekers->each(function ($jobSeeker) {
@@ -45,10 +48,10 @@ class JobSeekerRequestQuoteController extends Controller
                 ]);
             });
         });
-    
+
         return response()->json($requestQuotes);
     }
-    
+
 
 
 
@@ -198,9 +201,9 @@ class JobSeekerRequestQuoteController extends Controller
 
 
 
-
     public function confirmQuote(Request $request, $id)
     {
+        // Validate the request
         $validator = Validator::make($request->all(), [
             'area' => 'nullable|string',
             'name' => 'nullable|string',
@@ -218,6 +221,8 @@ class JobSeekerRequestQuoteController extends Controller
             'event_details' => 'nullable|string',
             'type_of_hiring' => 'nullable|string',
             'budget' => 'nullable|numeric',
+            'success_url' => 'required|url',
+            'cancel_url' => 'required|url',
         ]);
 
         if ($validator->fails()) {
@@ -248,7 +253,37 @@ class JobSeekerRequestQuoteController extends Controller
             'categories' => json_encode($request->categories), // Store categories as JSON
         ]);
 
-        return response()->json(['message' => 'RequestQuote confirmed successfully!', 'request_quote' => $requestQuote]);
+        // Stripe Integration - Set your secret key
+        Stripe::setApiKey(env('STRIPE_SECRET'));
+
+        // Create a Stripe Checkout Session
+        $session = Session::create([
+            'payment_method_types' => ['card', 'amazon_pay', 'us_bank_account'],
+            'line_items' => [
+                [
+                    'price_data' => [
+                        'currency' => 'usd',  // You can change to your desired currency
+                        'product_data' => [
+                            'name' => 'Event Budget: ' . $requestQuote->name,
+                        ],
+                        'unit_amount' => $requestQuote->budget * 100, // Stripe requires the amount in cents
+                    ],
+                    'quantity' => 1,
+                ],
+            ],
+            'mode' => 'payment',
+
+
+            'success_url' => $request->success_url . '?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => $request->success_url,
+
+
+        ]);
+
+        // Send email with Stripe payment link to the RequestQuote email
+        Mail::to($requestQuote->email)->send(new RequestQuotePaymentMail($requestQuote, $session->url));
+
+        return response()->json(['message' => 'RequestQuote confirmed successfully! A payment link has been sent to your email.', 'request_quote' => $requestQuote]);
     }
 
 
