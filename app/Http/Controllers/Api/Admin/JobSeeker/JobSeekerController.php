@@ -28,7 +28,7 @@ class JobSeekerController extends Controller
          $perPage = $request->input('per_page', 10);
 
          // Retrieve paginated job seekers with requestQuotes to prevent N+1 queries
-         $jobSeekers = JobSeeker::with(['requestQuotes']) // Load only necessary fields with(['requestQuotes:id,name'])
+         $jobSeekers = JobSeeker::with(['requestQuotes:id']) // Load only necessary fields with(['requestQuotes:id,name'])
              ->paginate($perPage);
 
          // Transform response to include assigned quote details
@@ -39,6 +39,12 @@ class JobSeekerController extends Controller
                  'email' => $jobSeeker->email,
                  'phone_number' => $jobSeeker->phone_number,
                  'location' => $jobSeeker->location,
+                 'join_date' => $jobSeeker->join_date,
+                 'average_review_rating' => $jobSeeker->average_review_rating,
+                 'total_reviews' => $jobSeeker->total_reviews,
+
+
+
                  'is_assigned_quote' => $jobSeeker->requestQuotes->isNotEmpty(), // Check if assigned any quote
                  'assigned_quotes' => $jobSeeker->requestQuotes->map(function ($quote) {
                      return $quote;
