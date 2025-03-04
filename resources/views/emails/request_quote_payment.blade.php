@@ -136,9 +136,11 @@
 
         <!-- Footer -->
         <div class="footer">
-            <p>Need help? Contact our support team at <a href="mailto:support@yourcompany.com">support@yourcompany.com</a></p>
-            <p>Thank you for choosing <strong>Your Company Name</strong>.</p>
+            <p>Need help? <a href="https://finesse-hosting.vercel.app/contact" style="color: #0073e6; text-decoration: none;">Contact Us</a>
+            </p>
+            <p>Thank you for choosing <strong><a href="https://finesse-hosting.vercel.app/" style="color: #333; text-decoration: none;">Finesse Hosting</a></strong>.</p>
         </div>
+        
     </div>
 
 </body>
