@@ -33,6 +33,33 @@ class RequestQuote extends Model
 
     protected $appends = ['rating', 'review_comment'];
 
+
+      // Always ensure categories is an array when retrieved
+      public function getCategoriesAttribute($value)
+      {
+          if (is_null($value)) {
+              return [];
+          }
+  
+          if (is_array($value)) {
+              return $value;
+          }
+  
+          // If it's a string, try to json_decode it
+          $decoded = json_decode($value, true);
+          if (json_last_error() === JSON_ERROR_NONE) {
+              return $decoded;
+          }
+  
+          // If not valid JSON, treat as comma-separated string
+          if (is_string($value)) {
+              return array_map('trim', explode(',', $value));
+          }
+  
+          return (array) $value;
+      }
+
+
     // Relationship: Many-to-many with JobSeekers
     public function jobSeekers()
     {
