@@ -31,7 +31,7 @@ class RequestQuote extends Model
         'categories' => 'array', // Store job categories as JSON
     ];
 
-    protected $appends = ['rating', 'review_comment'];
+    protected $appends = ['rating', 'review_comment','categories'];
 
 
       // Always ensure categories is an array when retrieved
