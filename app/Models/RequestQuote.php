@@ -35,30 +35,11 @@ class RequestQuote extends Model
 
 
       // Always ensure categories is an array when retrieved
-      public function getCategoriesAttribute()
-      {
+    public function getCategoriesAttribute()
+    {
         $value = $this->attributes['categories'];
-          if (is_null($value)) {
-              return [];
-          }
-
-          if (is_array($value)) {
-              return $value;
-          }
-
-          // If it's a string, try to json_decode it
-          $decoded = json_decode($value, true);
-          if (json_last_error() === JSON_ERROR_NONE) {
-              return $decoded;
-          }
-
-          // If not valid JSON, treat as comma-separated string
-          if (is_string($value)) {
-              return array_map('trim', explode(',', $value));
-          }
-
-          return (array) $value;
-      }
+        return json_decode($value, true); // Decode JSON into an associative array
+    }
 
 
     // Relationship: Many-to-many with JobSeekers
