@@ -164,9 +164,11 @@ class JobSeekerRequestQuoteController extends Controller
     if ($request->has('request_quote_id')) {
         // Get the RequestQuote
         $requestQuote = RequestQuote::findOrFail($request->request_quote_id);
+        Log::info('RequestQuote found: ' . $requestQuote->id);
 
         // Extract requested category names
         $requestedCategoryNames = collect($requestQuote->categories)->pluck('name')->toArray();
+        Log::info('Requested category names: ' . implode(', ', $requestedCategoryNames));
 
         // Get job seekers assigned to active RequestQuotes
         $assignedJobSeekerIds = \DB::table('job_seeker_request_quote')
@@ -174,6 +176,7 @@ class JobSeekerRequestQuoteController extends Controller
             ->where('request_quotes.status', '!=', 'completed') // Exclude completed ones
             ->pluck('job_seeker_id')
             ->toArray();
+        Log::info('Assigned job seeker IDs: ' . implode(', ', $assignedJobSeekerIds));
 
         // If no job seekers are assigned, consider the array empty and return all unassigned job seekers
         if (empty($assignedJobSeekerIds)) {
