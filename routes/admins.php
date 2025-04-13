@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Auth\Admin\AdminAuthController;
 use App\Http\Controllers\Api\Admin\JobSeeker\JobSeekerController;
 use App\Http\Controllers\Api\Admin\JobCategory\JobCategoryController;
 use App\Http\Controllers\Api\Admin\JobSeeker\JobApplicationController;
+use App\Http\Controllers\Api\Admin\DashboardMetrics\DashboardController;
 use App\Http\Controllers\Api\Admin\JobSeeker\JobSeekerRequestQuoteController;
 
 
@@ -25,6 +26,11 @@ Route::prefix('auth/admin')->group(function () {
 
 Route::prefix('admin')->group(function () {
     Route::middleware(AuthenticateAdmin::class)->group(function () { // Applying admin middleware
+
+
+        Route::get('/dashboard/overview', [DashboardController::class, 'getOverview']);
+        Route::get('/dashboard/statistics', [DashboardController::class, 'getStatistics']);
+        Route::get('/dashboard/recent-activities', [DashboardController::class, 'getRecentActivities']);
 
 
 
