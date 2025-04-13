@@ -103,7 +103,7 @@ class JobSeekerRequestQuoteController extends Controller
         $requestQuote->jobSeekers()->sync($jobSeekerData);
 
                 // Update the status of the RequestQuote
-                $requestQuote->status = $request->status;
+                $requestQuote->status = 'assigned';
                 $requestQuote->save();
 
         return response()->json(['message' => 'JobSeekers assigned successfully!', 'request_quote' => $requestQuote]);
