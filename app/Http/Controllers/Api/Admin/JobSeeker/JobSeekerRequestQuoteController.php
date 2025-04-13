@@ -164,7 +164,7 @@ class JobSeekerRequestQuoteController extends Controller
     if ($request->has('request_quote_id')) {
         // Get the RequestQuote
         $requestQuote = RequestQuote::findOrFail($request->request_quote_id);
-        Log::info('RequestQuote found: ' . $requestQuote->id);
+        Log::info('RequestQuote found: ' . $requestQuote);
 
         // Extract requested category names
         $requestedCategoryNames = collect($requestQuote->categories)->pluck('name')->toArray();
