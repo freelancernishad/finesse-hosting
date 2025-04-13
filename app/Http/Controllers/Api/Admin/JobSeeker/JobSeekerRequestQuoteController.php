@@ -102,6 +102,10 @@ class JobSeekerRequestQuoteController extends Controller
         // Sync job seekers with salaries
         $requestQuote->jobSeekers()->sync($jobSeekerData);
 
+                // Update the status of the RequestQuote
+                $requestQuote->status = $request->status;
+                $requestQuote->save();
+
         return response()->json(['message' => 'JobSeekers assigned successfully!', 'request_quote' => $requestQuote]);
     }
 
@@ -166,10 +170,10 @@ class JobSeekerRequestQuoteController extends Controller
         $requestQuote = RequestQuote::findOrFail($request->request_quote_id);
 
         // First decode the JSON string if it's still a string
-        $categories = is_string($requestQuote->categories) 
-            ? json_decode($requestQuote->categories, true) 
+        $categories = is_string($requestQuote->categories)
+            ? json_decode($requestQuote->categories, true)
             : $requestQuote->categories;
-        
+
         // Now extract the names
         $requestedCategoryNames = array_map(function($category) {
             // Handle both array and object formats
@@ -178,8 +182,8 @@ class JobSeekerRequestQuoteController extends Controller
             }
             return is_object($category) ? $category->name : $category;
         }, (array)$categories);
-        
-       
+
+
 
         // Get job seekers assigned to active RequestQuotes
         $assignedJobSeekerIds = \DB::table('job_seeker_request_quote')
