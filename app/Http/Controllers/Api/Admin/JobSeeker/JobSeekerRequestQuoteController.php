@@ -63,6 +63,10 @@ class JobSeekerRequestQuoteController extends Controller
     {
         $requestQuote = RequestQuote::with('jobSeekers')->find($id);
 
+
+        $requestQuote->categories = json_decode($requestQuote->categories);
+
+
         if (!$requestQuote) {
             return response()->json(['message' => 'RequestQuote not found'], 404);
         }

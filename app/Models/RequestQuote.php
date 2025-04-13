@@ -31,15 +31,10 @@ class RequestQuote extends Model
         'categories' => 'array', // Store job categories as JSON
     ];
 
-    protected $appends = ['rating', 'review_comment','categories'];
+    protected $appends = ['rating', 'review_comment'];
 
 
-      // Always ensure categories is an array when retrieved
-    public function getCategoriesAttribute()
-    {
-        $value = $this->attributes['categories'];
-        return json_decode($value, true); // Decode JSON into an associative array
-    }
+
 
 
     // Relationship: Many-to-many with JobSeekers
