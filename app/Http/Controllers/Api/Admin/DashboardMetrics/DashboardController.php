@@ -77,22 +77,40 @@ class DashboardController extends Controller
             $requestQuoteData[] = RequestQuote::whereBetween('created_at', [$start, $end])->count();
         }
 
-        // Top job categories by applications
-        $topCategories = JobCategory::withCount('jobApplications')
-            ->orderBy('job_applications_count', 'desc')
-            ->limit(5)
-            ->get()
-            ->map(function($category) {
-                return [
-                    'id' => $category->id,
-                    'name' => $category->name,
-                    'applications_count' => $category->job_applications_count
-                ];
-            });
+// Top job categories by applications
+$topCategories = JobCategory::select([
+    'job_categories.id',
+    'job_categories.name',
+    \DB::raw('COUNT(applied_jobs.id) as applications_count')
+])
+->leftJoin('applied_jobs', 'job_categories.id', '=', 'applied_jobs.job_category_id')
+->groupBy('job_categories.id', 'job_categories.name') // Include all non-aggregated columns
+->orderBy('applications_count', 'desc')
+->limit(5)
+->get()
+->map(function($category) {
+    return [
+        'id' => $category->id,
+        'name' => $category->name,
+        'applications_count' => $category->applications_count
+    ];
+});
 
-        // Job seeker availability
-        $availableJobSeekers = JobSeeker::where('is_available', true)->count();
-        $unavailableJobSeekers = JobSeeker::where('is_available', false)->count();
+        // Get job seekers assigned to active RequestQuotes (status != 'completed')
+        $assignedJobSeekerIds = \DB::table('job_seeker_request_quote')
+            ->join('request_quotes', 'job_seeker_request_quote.request_quote_id', '=', 'request_quotes.id')
+            ->where('request_quotes.status', '!=', 'completed')
+            ->pluck('job_seeker_id')
+            ->toArray();
+
+        // Total job seekers count
+        $totalJobSeekers = JobSeeker::count();
+
+        // Available job seekers (not assigned to active requests)
+        $availableJobSeekers = $totalJobSeekers - count(array_unique($assignedJobSeekerIds));
+
+        // Active request quotes count
+        $activeRequestQuotesCount = RequestQuote::where('status', '!=', 'completed')->count();
 
         return response()->json([
             'monthly_trends' => [
@@ -104,8 +122,14 @@ class DashboardController extends Controller
             'top_categories' => $topCategories,
             'job_seeker_availability' => [
                 'available' => $availableJobSeekers,
-                'unavailable' => $unavailableJobSeekers,
-                'total' => $availableJobSeekers + $unavailableJobSeekers,
+                'assigned_to_active_requests' => count(array_unique($assignedJobSeekerIds)),
+                'total' => $totalJobSeekers,
+            ],
+            'active_request_quotes' => $activeRequestQuotesCount,
+            'metrics' => [
+                'average_seekers_per_active_request' => $activeRequestQuotesCount > 0
+                    ? count($assignedJobSeekerIds) / $activeRequestQuotesCount
+                    : 0,
             ]
         ]);
     }

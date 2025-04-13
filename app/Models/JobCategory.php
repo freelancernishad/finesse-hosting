@@ -27,6 +27,10 @@ class JobCategory extends Model
         return $this->hasMany(AppliedJob::class, 'job_category_id');
     }
 
+    public function jobApplications()
+    {
+        return $this->hasMany(AppliedJob::class, 'job_category_id'); // Adjust foreign key if needed
+    }
     /**
      * Boot method to generate a unique category_id before saving.
      */
