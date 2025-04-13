@@ -164,11 +164,21 @@ class JobSeekerRequestQuoteController extends Controller
     if ($request->has('request_quote_id')) {
         // Get the RequestQuote
         $requestQuote = RequestQuote::findOrFail($request->request_quote_id);
-        Log::info('RequestQuote found: ' . $requestQuote->categories);
+        Log::info('RequestQuote found: ' . json_encode($requestQuote->categories));
 
-        // Extract requested category names
-        $requestedCategoryNames = collect($requestQuote->categories)->pluck('name')->toArray();
-        Log::info(json_encode($requestedCategoryNames));
+        // Extract requested category names - use either of these approaches:
+        
+        // Option 1: If categories is array of objects
+        $requestedCategoryNames = collect($requestQuote->categories)->map(function($category) {
+            return is_object($category) ? $category->name : $category['name'];
+        })->toArray();
+        
+        // Option 2: Alternative approach that works with both objects and arrays
+        $requestedCategoryNames = array_map(function($category) {
+            return is_object($category) ? $category->name : $category['name'];
+        }, $requestQuote->categories);
+        
+        Log::info('Extracted category names: ' . json_encode($requestedCategoryNames));
 
         Log::info('Requested category names: ' . implode(', ', $requestedCategoryNames));
 
