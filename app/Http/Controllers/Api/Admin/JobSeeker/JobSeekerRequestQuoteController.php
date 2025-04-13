@@ -164,7 +164,6 @@ class JobSeekerRequestQuoteController extends Controller
     if ($request->has('request_quote_id')) {
         // Get the RequestQuote
         $requestQuote = RequestQuote::findOrFail($request->request_quote_id);
-        Log::info('RequestQuote found: ' . $requestQuote->categories);
 
         // First decode the JSON string if it's still a string
         $categories = is_string($requestQuote->categories) 
@@ -180,7 +179,7 @@ class JobSeekerRequestQuoteController extends Controller
             return is_object($category) ? $category->name : $category;
         }, (array)$categories);
         
-        Log::info('Extracted category names: ' . json_encode($requestedCategoryNames));
+       
 
         // Get job seekers assigned to active RequestQuotes
         $assignedJobSeekerIds = \DB::table('job_seeker_request_quote')
