@@ -168,7 +168,7 @@ class JobSeekerRequestQuoteController extends Controller
 
         // Extract requested category names
         $requestedCategoryNames = collect($requestQuote->categories)->pluck('name')->toArray();
-        Log::info($requestedCategoryNames);
+        Log::info(json_encode($requestedCategoryNames));
 
         Log::info('Requested category names: ' . implode(', ', $requestedCategoryNames));
 
