@@ -47,7 +47,7 @@ class JobApplicationController extends Controller
         // Check if the job seeker already has an approved application in this category
         $existingApplication = AppliedJob::where('job_seeker_id', $jobSeeker->id)
             ->where('job_category_id', $request->job_category_id)
-            ->where('status', 'approved') // Only check approved applications
+            // ->where('status', 'approved') // Only check approved applications
             ->exists();
 
         if ($existingApplication) {
