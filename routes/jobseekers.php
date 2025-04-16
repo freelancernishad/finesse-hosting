@@ -5,6 +5,7 @@ use App\Http\Middleware\AuthenticateJobSeeker;
 use App\Http\Controllers\Api\Global\ReviewController;
 use App\Http\Controllers\Api\JobSeeker\JobSeekerController;
 use App\Http\Controllers\Api\JobSeeker\JobApplicationController;
+use App\Http\Controllers\Api\Auth\JobSeeker\JobSeekerPasswordResetController;
 use App\Http\Controllers\Api\Auth\JobSeeker\JobSeekerAuthController; // JobSeekerAuthController
 
 Route::prefix('auth/jobseeker')->group(function () { // Prefix for job seeker routes
@@ -21,6 +22,9 @@ Route::prefix('auth/jobseeker')->group(function () { // Prefix for job seeker ro
     });
 });
 
+
+Route::post('jobseeker/password/email', [JobSeekerPasswordResetController::class, 'sendResetLinkEmail']);
+Route::post('jobseeker/password/reset', [JobSeekerPasswordResetController::class, 'reset']);
 
 
 Route::prefix('jobseeker')->group(function () {
