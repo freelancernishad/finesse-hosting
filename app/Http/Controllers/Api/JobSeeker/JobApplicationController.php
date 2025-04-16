@@ -53,7 +53,7 @@ class JobApplicationController extends Controller
         if ($existingApplication) {
             return response()->json([
                 'status' => false,
-                'message' => 'You have already applied and been approved for this job category.',
+                'message' => 'You have already applied for this job category.',
             ], 403);
         }
 
