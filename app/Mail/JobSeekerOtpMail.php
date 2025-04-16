@@ -20,7 +20,7 @@ class JobSeekerOtpMail extends Mailable
 
     public function build()
     {
-        return $this->subject('Your Job Seeker OTP Code')
+        return $this->subject('Your Profile verification code')
                     ->view('emails.job_seeker_otp')
                     ->with(['otp' => $this->otp]);
     }
