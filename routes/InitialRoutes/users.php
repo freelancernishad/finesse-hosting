@@ -73,13 +73,6 @@ Route::prefix('coupons')->group(function () {
 });
 
 
-// Password reset routes
-Route::post('user/password/email', [UserPasswordResetController::class, 'sendResetLinkEmail']);
-Route::post('user/password/reset', [UserPasswordResetController::class, 'reset']);
 
 
 
-Route::post('/verify-otp', [VerificationController::class, 'verifyOtp']);
-Route::post('/resend/otp', [VerificationController::class, 'resendOtp']);
-Route::get('/email/verify/{hash}', [VerificationController::class, 'verifyEmail']);
-Route::post('/resend/verification-link', [VerificationController::class, 'resendVerificationLink']);
