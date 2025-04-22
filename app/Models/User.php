@@ -66,6 +66,16 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'password' => 'hashed',
     ];
 
+
+    protected $appends = ['role'];
+
+    // 👇 Add this to return 'employer' as role
+    public function getRoleAttribute()
+    {
+        return 'employer';
+    }
+
+
     /**
      * Get the identifier that will be stored in the subject claim of the JWT.
      *

@@ -80,6 +80,7 @@ class AuthUserController extends Controller
             'email' => $user->email,
             'name' => $user->name,
             'category' => $user->category ?? null, // Include category if applicable
+            'role' => 'employer',
             'email_verified' => $user->hasVerifiedEmail(), // Check verification status
         ];
 
@@ -128,6 +129,7 @@ class AuthUserController extends Controller
                 'email' => $user->email,
                 'name' => $user->name,
                 'category' => $user->category,
+                'role' => 'employer',
                 'email_verified' => $user->hasVerifiedEmail(), // Checks verification status
             ];
 

@@ -34,8 +34,16 @@ class JobSeeker extends Authenticatable implements JWTSubject, MustVerifyEmail
         'review_summary',
         'total_reviews',
         'approved_job_roles',
-        'last_review'
+        'last_review',
+        'role'
     ];
+
+
+    // 👇 Add this to return 'employer' as role
+    public function getRoleAttribute()
+    {
+        return 'employer';
+    }
 
     public function appliedJobs()
     {
