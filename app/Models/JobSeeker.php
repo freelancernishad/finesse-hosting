@@ -5,28 +5,22 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Tymon\JWTAuth\Contracts\JWTSubject;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Carbon\Carbon;
 
-class JobSeeker extends Authenticatable implements JWTSubject, MustVerifyEmail
+class JobSeeker extends Authenticatable
 {
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name', 'member_id', 'id_no', 'phone_number', 'email',
-        'password', 'location', 'post_code', 'city', 'country', 'join_date', 'resume', 'profile_picture',
-        'email_verified_at', 'verification_token', 'otp', 'email_verified'
+        'user_id', 'member_id', 'id_no', 'phone_number',
+        'location', 'post_code', 'city', 'country', 'join_date', 'resume',
     ];
 
     protected $hidden = [
-        'password', 'remember_token', 'verification_token', 'otp'
+
     ];
 
     protected $casts = [
-        'password' => 'hashed',
-        'email_verified_at' => 'datetime',
-        'email_verified' => 'boolean',
     ];
 
     protected $appends = [
@@ -35,14 +29,12 @@ class JobSeeker extends Authenticatable implements JWTSubject, MustVerifyEmail
         'total_reviews',
         'approved_job_roles',
         'last_review',
-        'role'
     ];
 
 
-    // 👇 Add this to return 'employer' as role
-    public function getRoleAttribute()
+    public function user()
     {
-        return 'employer';
+        return $this->belongsTo(User::class);
     }
 
     public function appliedJobs()
@@ -64,10 +56,6 @@ class JobSeeker extends Authenticatable implements JWTSubject, MustVerifyEmail
             ->toArray();
     }
 
-    public function getEmailVerifiedAttribute()
-    {
-        return !is_null($this->email_verified_at);
-    }
 
     public function getAverageReviewRatingAttribute()
     {
@@ -102,11 +90,7 @@ class JobSeeker extends Authenticatable implements JWTSubject, MustVerifyEmail
         ];
     }
 
-    public function saveProfilePicture($file)
-    {
-        $filePath = uploadFileToS3($file, 'profile_pictures/' . $this->member_id);
-        return tap($this)->update(['profile_picture' => $filePath])->profile_picture;
-    }
+
 
     public function saveResume($file)
     {
@@ -118,8 +102,7 @@ class JobSeeker extends Authenticatable implements JWTSubject, MustVerifyEmail
     {
         parent::boot();
         static::creating(fn($jobSeeker) => $jobSeeker->fill([
-            'member_id' => static::generateUniqueMemberId(),
-            'verification_token' => \Str::random(60)
+            'member_id' => static::generateUniqueMemberId()
         ]));
     }
 
@@ -136,14 +119,7 @@ class JobSeeker extends Authenticatable implements JWTSubject, MustVerifyEmail
         return $this->getKey();
     }
 
-    public function getJWTCustomClaims(): array
-    {
-        return [
-            'name' => $this->name,
-            'email' => $this->email,
-            'email_verified' => !is_null($this->email_verified_at),
-        ];
-    }
+
 
     public function requestQuotes()
     {

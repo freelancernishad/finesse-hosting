@@ -20,7 +20,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     protected $fillable = [
         'name',
         'email',
-        'stripe_customer_id',
+        'active_profile',
         'profile_picture',
         'password',
         'email_verified_at',
@@ -30,14 +30,14 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
 
 
 
-        'phone',
-        'business_name',
-        'country',
-        'state',
-        'city',
-        'region',
-        'zip_code',
-        'stripe_customer_id'
+        // 'phone',
+        // 'business_name',
+        // 'country',
+        // 'state',
+        // 'city',
+        // 'region',
+        // 'zip_code',
+        // 'stripe_customer_id'
 
 
     ];
@@ -54,6 +54,8 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'email_verified_at',
         'otp',
         'otp_expires_at',
+        'stripe_customer_id',
+        'business_name'
     ];
 
     /**
@@ -67,12 +69,15 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     ];
 
 
-    protected $appends = ['role'];
 
-    // 👇 Add this to return 'employer' as role
-    public function getRoleAttribute()
+    public function jobSeeker()
     {
-        return 'employer';
+        return $this->hasOne(JobSeeker::class);
+    }
+
+    public function employer()
+    {
+        return $this->hasOne(Employer::class);
     }
 
 

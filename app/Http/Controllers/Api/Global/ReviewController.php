@@ -178,21 +178,40 @@ class ReviewController extends Controller
      */
     public function getMyReviews(Request $request)
     {
-        $jobSeeker = Auth::guard('job_seeker')->user();
+        // Authenticate with 'api' guard
+        $user = Auth::guard('api')->user();
+
+        if (!$user) {
+            return response()->json(['status' => false, 'message' => 'Unauthorized'], 401);
+        }
+            // Check if the user's active profile is JobSeeker
+            if ($user->active_profile !== 'JobSeeker') {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'You must have an active JobSeeker profile to access this.',
+                ], 403);
+            }
+
+        // Get the related JobSeeker profile
+        $jobSeeker = $user->jobSeeker;
 
         if (!$jobSeeker) {
-            return response()->json(['message' => 'Unauthorized'], 401);
+            return response()->json(['status' => false, 'message' => 'No JobSeeker profile found'], 404);
         }
 
-        // Get per_page from request, default to 10 if not provided
+        // Dynamic per page
         $perPage = $request->query('per_page', 10);
 
-        $reviews = Review::where('job_seeker_id', $jobSeeker->id)
-            ->latest()
-            ->paginate($perPage); // Paginate dynamically
+        // Use relationship (if you have reviews relation defined)
+        $reviews = $jobSeeker->reviews()->latest()->paginate($perPage);
 
-        return response()->json($reviews, 200);
+        return response()->json([
+            'status' => true,
+            'message' => 'Reviews fetched successfully',
+            'data' => $reviews,
+        ], 200);
     }
+
 
 
 

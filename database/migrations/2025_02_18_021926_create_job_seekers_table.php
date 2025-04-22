@@ -9,16 +9,12 @@ return new class extends Migration {
     {
         Schema::create('job_seekers', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->nullable();
             $table->string('member_id')->unique();
             $table->string('id_no')->nullable();
             $table->string('phone_number')->nullable();
-            $table->string('email')->unique();
-            $table->string('password'); // Auth password
             $table->string('location')->nullable();
             $table->date('join_date')->nullable();
             $table->string('resume')->nullable(); // Resume file path (PDF/Image)
-            $table->string('profile_picture')->nullable(); // Optional profile picture
             $table->rememberToken();
             $table->timestamps();
         });

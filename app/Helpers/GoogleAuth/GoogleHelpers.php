@@ -14,9 +14,9 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 
 function handleGoogleAuth(Request $request)
 {
-    // Validate the access token
     $validator = Validator::make($request->all(), [
         'access_token' => 'required|string',
+        'active_profile' => 'required|string', // Validate active_profile
     ]);
 
     if ($validator->fails()) {
@@ -24,7 +24,6 @@ function handleGoogleAuth(Request $request)
     }
 
     try {
-        // Fetch user data from Google API
         $response = Http::get('https://www.googleapis.com/oauth2/v3/userinfo', [
             'access_token' => $request->access_token,
         ]);
@@ -40,30 +39,23 @@ function handleGoogleAuth(Request $request)
         $user = User::where('email', $userData['email'])->first();
 
         if (!$user) {
-            // Register the user if they don't exist
             $user = User::create([
                 'name' => $userData['name'] ?? explode('@', $userData['email'])[0],
                 'email' => $userData['email'],
-                'password' => Hash::make(Str::random(16)), // Generate a random password
+                'password' => Hash::make(Str::random(16)),
                 'email_verified_at' => now(),
+                'active_profile' => $request->active_profile, // Save during registration
             ]);
-        }else{
-            $user->update(['email_verified_at'=> now()]);
+        } else {
+            $user->update([
+                'email_verified_at' => now(),
+                'active_profile' => $request->active_profile, // Update existing user
+            ]);
         }
 
-        // Authenticate the user
         Auth::login($user);
 
-        // Custom payload data
-        $payload = [
-            'email' => $user->email,
-            'name' => $user->name,
-            'category' => $user->category ?? 'default', // Assuming category might not be set for Google users
-            'email_verified' => $user->hasVerifiedEmail(),
-        ];
-
         try {
-            // Generate a JWT token with custom claims
             $token = JWTAuth::fromUser($user, ['guard' => 'user']);
         } catch (JWTException $e) {
             return response()->json(['error' => 'Could not create token'], 500);
@@ -71,7 +63,13 @@ function handleGoogleAuth(Request $request)
 
         return response()->json([
             'token' => $token,
-            'user' => $payload,
+            'user' => [
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone_number' => $user->phone_number,
+                'email_verified' => $user->email_verified_at,
+                'active_profile' => $user->active_profile,
+            ],
         ], 200);
     } catch (\Exception $e) {
         return response()->json([

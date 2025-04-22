@@ -113,55 +113,41 @@ class JobSeekerController extends Controller
         return response()->json(['message' => 'Profile updated successfully'], 200);
     }
 
-    /**
-     * Update Job Seeker Profile Picture
-     */
-    public function updateProfilePicture(Request $request)
-    {
-        if (Auth::guard('job_seeker')->check()) {
-            $jobSeeker = Auth::guard('job_seeker')->user();
-        } elseif (Auth::guard('admin')->check() && $request->has('job_seeker_id')) {
-            $jobSeeker = JobSeeker::findOrFail($request->job_seeker_id);
-        } else {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
 
-        // Validate request
-        $validator = Validator::make($request->all(), [
-            'profile_picture' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Validation error',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        $filePath = $jobSeeker->saveProfilePicture($request->file('profile_picture'));
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Profile picture updated successfully!',
-            'profile_picture' => $filePath
-        ]);
-    }
 
     /**
      * Update Job Seeker Resume
      */
     public function updateResume(Request $request)
     {
-        if (Auth::guard('job_seeker')->check()) {
-            $jobSeeker = Auth::guard('job_seeker')->user();
+        if (Auth::guard('api')->check()) {
+            $user = Auth::guard('api')->user();
+            $jobSeeker = $user->jobSeeker;
+
+            if (!$jobSeeker) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'JobSeeker profile not found for user.',
+                ], 404);
+            }
+            // Check if the user's active profile is JobSeeker
+            if ($user->active_profile !== 'JobSeeker') {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'You must have an active JobSeeker profile to access this.',
+                ], 403);
+            }
+
+
+
         } elseif (Auth::guard('admin')->check() && $request->has('job_seeker_id')) {
             $jobSeeker = JobSeeker::findOrFail($request->job_seeker_id);
+
         } else {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // Validate request
+        // Validate resume
         $validator = Validator::make($request->all(), [
             'resume' => 'required|mimes:pdf,doc,docx,jpeg,png,jpg|max:5120',
         ]);
@@ -174,7 +160,12 @@ class JobSeekerController extends Controller
             ], 422);
         }
 
+        // Save the resume
         $filePath = $jobSeeker->saveResume($request->file('resume'));
+
+        // Update JobSeeker model
+        $jobSeeker->resume = $filePath;
+        $jobSeeker->save();
 
         return response()->json([
             'status' => true,
@@ -182,4 +173,5 @@ class JobSeekerController extends Controller
             'resume' => $filePath
         ]);
     }
+
 }

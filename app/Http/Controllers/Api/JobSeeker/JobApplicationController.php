@@ -19,6 +19,8 @@ class JobApplicationController extends Controller
      */
     public function applyForJob(Request $request)
     {
+
+
         // Validate incoming data
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
@@ -42,7 +44,29 @@ class JobApplicationController extends Controller
             ], 422);
         }
 
-        $jobSeeker = Auth::guard('job_seeker')->user();
+
+        // Authenticate user with 'api' guard
+        $user = Auth::guard('api')->user();
+
+        if (!$user) {
+            return response()->json(['status' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+
+        // Check if the user's active profile is JobSeeker
+        if ($user->active_profile !== 'JobSeeker') {
+            return response()->json([
+                'status' => false,
+                'message' => 'You must have an active JobSeeker profile to access this.',
+            ], 403);
+        }
+
+        // Retrieve JobSeeker profile
+        $jobSeeker = $user->jobSeeker;
+
+        if (!$jobSeeker) {
+            return response()->json(['status' => false, 'message' => 'JobSeeker profile not found'], 404);
+        }
 
         // Check if the job seeker already has an approved application in this category
         $existingApplication = AppliedJob::where('job_seeker_id', $jobSeeker->id)
@@ -82,6 +106,7 @@ class JobApplicationController extends Controller
         }
 
         return response()->json([
+            'status' => true,
             'message' => 'Job application submitted successfully!',
             'applied_job' => $appliedJob,
         ], 200);
@@ -96,13 +121,34 @@ class JobApplicationController extends Controller
      */
     public function getJobList(Request $request)
     {
-        $jobSeeker = Auth::guard('job_seeker')->user();
+        // Authenticate user with 'api' guard
+        $user = Auth::guard('api')->user();
 
-        if (!$jobSeeker) {
+        if (!$user) {
             return response()->json([
                 'status' => false,
                 'message' => 'Unauthorized access.',
             ], 401);
+        }
+
+
+            // Check if the user's active profile is JobSeeker
+    if ($user->active_profile !== 'JobSeeker') {
+        return response()->json([
+            'status' => false,
+            'message' => 'You must have an active JobSeeker profile to access this.',
+        ], 403);
+    }
+
+
+        // Retrieve the JobSeeker profile
+        $jobSeeker = $user->jobSeeker;
+
+        if (!$jobSeeker) {
+            return response()->json([
+                'status' => false,
+                'message' => 'JobSeeker profile not found.',
+            ], 404);
         }
 
         // Get per_page value from request, default to 10
