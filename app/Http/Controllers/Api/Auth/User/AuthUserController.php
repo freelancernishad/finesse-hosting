@@ -162,7 +162,16 @@ class AuthUserController extends Controller
         }
 
         if (!$user->email_verified_at) {
-            return response()->json(['message' => 'Please verify your email before logging in.'], 403);
+            try {
+            $token = JWTAuth::fromUser($user);
+            } catch (JWTException $e) {
+            return response()->json(['error' => 'Could not create token'], 500);
+            }
+
+            return response()->json([
+            'message' => 'Please verify your email before logging in.',
+            'token' => $token, // Include the token in the response
+            ], 403);
         }
 
         // Update active_profile on login
