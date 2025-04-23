@@ -67,6 +67,7 @@ Route::prefix('global/')->group(function () {
     Route::get('package-addons/{id}', [UserPackageAddonController::class, 'show']); // Get a specific addon
 
     Route::get('job-categories', [JobCategoryController::class, 'getJobCategories']);
+    Route::get('industries', [JobCategoryController::class, 'getJobCategories']);
 
 
     Route::get('/request-quotes/{requestQuoteId}/job-seekers', [RequestQuoteController::class, 'getJobSeekersByRequestQuote']);
