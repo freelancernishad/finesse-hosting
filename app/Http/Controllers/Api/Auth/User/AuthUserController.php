@@ -48,10 +48,19 @@ class AuthUserController extends Controller
         $existingUser = User::where('email', $request->email)->first();
 
         if ($existingUser) {
+
             if (!$existingUser->email_verified_at) {
+                // Generate token for the existing user
+                try {
+                    $token = JWTAuth::fromUser($existingUser);
+                } catch (JWTException $e) {
+                    return response()->json(['error' => 'Could not create token'], 500);
+                }
+
                 return response()->json([
                     'message' => 'This email is already registered but not verified. Please verify your email.',
                     'email' => $request->email,
+                    'token' => $token, // Include the token in the response
                 ], 400);
             }
             return response()->json([
