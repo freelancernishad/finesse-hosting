@@ -42,4 +42,10 @@ class JobCategory extends Model
             $jobCategory->category_id = (string) Str::uuid();
         });
     }
+
+    public function categories()
+    {
+        return $this->hasMany(JobCategory::class, 'parent_id');
+    }
+
 }
