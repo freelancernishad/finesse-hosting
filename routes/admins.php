@@ -68,6 +68,7 @@ Route::prefix('admin')->group(function () {
 
 
             // Job category routes
+            Route::get('get/all/industry-and-category', [JobCategoryController::class, 'getIndustryCategories']);
             Route::get('job-categories', [JobCategoryController::class, 'getJobCategories']);
             Route::post('job-categories', [JobCategoryController::class, 'createJobCategory']);
             Route::put('job-categories/{category_id}', [JobCategoryController::class, 'updateJobCategory']);

@@ -16,6 +16,39 @@ class JobCategoryController extends Controller
      * @return \Illuminate\Http\Response
      */
 
+    public function getIndustryCategories(Request $request)
+    {
+        // Apply filters if provided
+        $query = JobCategory::query()->withCount([
+            'appliedJobs' => function ($query) {
+                $query->where('status', 'approved'); // Only count approved applications
+            }
+        ]);
+
+        // Filter by category name
+        if ($request->has('name')) {
+            $query->where('name', 'like', '%' . $request->name . '%');
+        }
+
+        // Filter by status
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Order by latest
+        $query->latest(); // Equivalent to orderBy('created_at', 'desc')
+
+        // Check if the user is authenticated with the 'admin' guard
+        if (auth('admin')->check()) {
+            $perPage = $request->input('per_page', 10); // Default to 10 if not provided
+            $jobCategories = $query->paginate($perPage);
+        } else {
+            $jobCategories = $query->get(); // Get all without pagination
+        }
+
+        return response()->json($jobCategories, 200);
+    }
+
     public function getJobCategories(Request $request)
     {
         // Apply filters if provided
