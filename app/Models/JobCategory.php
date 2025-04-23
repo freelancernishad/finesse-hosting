@@ -15,8 +15,9 @@ class JobCategory extends Model
 
     // Fillable fields for mass assignment
     protected $fillable = [
-        'category_id', // Explicitly defining the custom primary key
+        'category_id',
         'name',
+        'parent_id',
         'status',
     ];
 

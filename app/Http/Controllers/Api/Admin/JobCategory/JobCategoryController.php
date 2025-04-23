@@ -15,6 +15,7 @@ class JobCategoryController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
+
     public function getJobCategories(Request $request)
     {
         // Apply filters if provided
@@ -32,6 +33,14 @@ class JobCategoryController extends Controller
         // Filter by status
         if ($request->has('status')) {
             $query->where('status', $request->status);
+        }
+
+        // Filter by parent_id if provided
+        if ($request->has('parent_id')) {
+            $query->where('parent_id', $request->parent_id);
+        } else {
+            // Only include categories where parent_id is null
+            $query->whereNull('parent_id');
         }
 
         // Order by latest
@@ -62,7 +71,7 @@ class JobCategoryController extends Controller
         // Validate incoming request data
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255|unique:job_categories,name',
-            // 'status' => 'required|in:active,inactive',
+            'parent_id' => 'nullable|exists:job_categories,id',
         ]);
 
         if ($validator->fails()) {
@@ -76,6 +85,7 @@ class JobCategoryController extends Controller
         // Create job category
         $jobCategory = JobCategory::create([
             'name' => $request->name,
+            'parent_id' => $request->parent_id, // <-- set parent_id if provided
         ]);
 
         return response()->json([
@@ -94,11 +104,12 @@ class JobCategoryController extends Controller
     public function updateJobCategory(Request $request, $category_id)
     {
         // Find the job category
-        $jobCategory = JobCategory::findOrFail($category_id);
+        $jobCategory = JobCategory::where('category_id', $category_id)->firstOrFail();
+
         // Validate incoming request data
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255|unique:job_categories,name,' . $category_id . ',category_id',
-
+            'name' => 'required|string|max:255|unique:job_categories,name,' . $jobCategory->id,
+            'parent_id' => 'nullable|exists:job_categories,id',
         ]);
 
         if ($validator->fails()) {
@@ -112,7 +123,7 @@ class JobCategoryController extends Controller
         // Update job category
         $jobCategory->update([
             'name' => $request->name,
-
+            'parent_id' => $request->parent_id, // Now it can update parent_id too
         ]);
 
         return response()->json([
