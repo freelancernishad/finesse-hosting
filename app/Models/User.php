@@ -102,6 +102,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
             'name' => $this->name,
             'email' => $this->email,
             'email_verified' => !is_null($this->email_verified_at),
+            'active_profile' => $this->active_profile,
         ];
     }
 

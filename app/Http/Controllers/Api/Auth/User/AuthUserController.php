@@ -146,7 +146,7 @@ class AuthUserController extends Controller
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|email',
             'password' => 'required|string',
-            'active_profile' => 'required|in:JobSeeker,Employer', // 👈 validate active_profile
+
         ]);
 
         if ($validator->fails()) {
@@ -174,10 +174,6 @@ class AuthUserController extends Controller
             ], 403);
         }
 
-        // Update active_profile on login
-        $user->update([
-            'active_profile' => $request->active_profile, // 👈 update active_profile
-        ]);
 
         try {
             $token = JWTAuth::fromUser($user);
@@ -201,7 +197,7 @@ class AuthUserController extends Controller
                 'email' => $user->email,
                 'phone_number' => $user->phone_number,
                 'email_verified' => (bool) $user->email_verified_at,
-                'active_profile' => $user->active_profile, // 👈 return active_profile
+                'active_profile' => $user->active_profile,
                 'profile' => $profile,
             ],
         ], 200);
