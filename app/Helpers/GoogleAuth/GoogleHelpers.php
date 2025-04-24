@@ -16,7 +16,6 @@ function handleGoogleAuth(Request $request)
 {
     $validator = Validator::make($request->all(), [
         'access_token' => 'required|string',
-        'active_profile' => 'required|string', // Validate active_profile
     ]);
 
     if ($validator->fails()) {
@@ -49,7 +48,6 @@ function handleGoogleAuth(Request $request)
         } else {
             $user->update([
                 'email_verified_at' => now(),
-                'active_profile' => $request->active_profile, // Update existing user
             ]);
         }
 
