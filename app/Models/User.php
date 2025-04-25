@@ -30,6 +30,16 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
 
 
 
+
+        // Address fields
+        'country',
+        'state',
+        'city',
+        'region',
+        'street_address',
+        'zip_code',
+        'full_address',
+
         // 'phone',
         // 'business_name',
         // 'country',
@@ -67,6 +77,21 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+
+    public static function booted()
+    {
+        static::saving(function ($user) {
+            $user->full_address = trim(collect([
+                $user->street_address,
+                $user->region,
+                $user->city,
+                $user->state,
+                $user->zip_code,
+                $user->country
+            ])->filter()->implode(', '));
+        });
+    }
 
 
 

@@ -10,7 +10,21 @@ class Employer extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'profile_picture'
+        'user_id',
+        'profile_picture',
+        'company_name',
+        'industry',
+        'website',
+        'company_size',
+        'business_location',
+        'years_in_operation',
+        'company_description',
+        'social_links',
+        'designation',
+        'bio',
+        'preferred_contact_time',
+        'preferred_contact_via',
+        'hired_before',
     ];
 
     // Define the inverse relationship with User
