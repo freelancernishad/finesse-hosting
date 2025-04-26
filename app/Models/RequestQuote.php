@@ -10,6 +10,7 @@ class RequestQuote extends Model
     use HasFactory;
 
     protected $fillable = [
+        // Old fields
         'user_id',
         'name',
         'email',
@@ -24,49 +25,69 @@ class RequestQuote extends Model
         'area',
         'type_of_hiring',
         'status',
-        'budget'
+        'budget',
+
+        // New fields
+        'selected_industry',
+        'selected_categories',
+        'job_descriptions',
+        'is_use_my_current_company_location',
+        'job_location',
+        'years_of_experience',
+        'reason_for_hire',
+        'note',
+        'hire_for_my_current_company',
+        'company_info',
+        'total_hours',
+        'start_date',
+        'end_date',
     ];
 
     protected $casts = [
-        'categories' => 'array', // Store job categories as JSON
+        'categories' => 'array', // Old: event categories
+        'selected_categories' => 'array', // New: selected categories with number_of_employee
+        'job_descriptions' => 'array',
+        'job_location' => 'array',
+        'company_info' => 'array',
+        'is_use_my_current_company_location' => 'boolean',
+        'hire_for_my_current_company' => 'boolean',
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
     ];
 
     protected $appends = ['rating', 'review_comment'];
 
+    // Relationships
 
-
-
-
-    // Relationship: Many-to-many with JobSeekers
     public function jobSeekers()
     {
         return $this->belongsToMany(JobSeeker::class, 'job_seeker_request_quote', 'request_quote_id', 'job_seeker_id')
                     ->withPivot('salary');  // Include the salary field
     }
 
-    // Relationship: Single Review for this RequestQuote
     public function review()
     {
         return $this->hasOne(Review::class, 'request_quote_id');
     }
 
-    // Accessor: Get the rating from the single review
+    // Accessors
+
     public function getRatingAttribute()
     {
-        return $this->review ? $this->review->rating : null; // Return null if no review
+        return $this->review ? $this->review->rating : null;
     }
 
-    // Accessor: Get the review comment
     public function getReviewCommentAttribute()
     {
-        return $this->review ? $this->review->comment : null; // Return null if no review
+        return $this->review ? $this->review->comment : null;
     }
 
-    // Update status and assign JobSeekers
+    // Methods
+
     public function assignJobSeekers($jobSeekerIds)
     {
-        $this->jobSeekers()->sync($jobSeekerIds);  // Sync job seekers with the request quote
-        $this->status = 'assigned';  // Set status to assigned
+        $this->jobSeekers()->sync($jobSeekerIds);
+        $this->status = 'assigned';
         $this->save();
     }
 }

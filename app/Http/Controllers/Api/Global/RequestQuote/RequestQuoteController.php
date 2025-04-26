@@ -9,68 +9,111 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
 
 class RequestQuoteController extends Controller
 {
     public function store(Request $request)
     {
-        // Define validation rules
+        // Define validation rules for new fields
         $rules = [
-            'name' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:15',
-            'how_did_you_hear' => 'nullable|string|max:255',
-            'event_date' => 'nullable|date',
-            'start_time' => 'nullable|date_format:H:i',
-            'categories' => 'nullable|array', // Ensure it's an array
-            'categories.*.id' => 'nullable|exists:job_categories,id', // Ensure each category id exists in job_categories
-            'categories.*.name' => 'nullable|string|max:255', // Ensure name is provided and is a string
-            'categories.*.count' => 'nullable|integer|min:1', // Ensure count is provided and is a valid integer
-            'number_of_guests' => 'nullable|integer|min:1',
-            'event_location' => 'nullable|string|max:255',
-            'event_details' => 'nullable|string',
-            'area' => 'nullable|string|max:255', // Validation for area
-            'type_of_hiring' => 'nullable|string|max:255', // Validation for type_of_hiring
+            'selected_industry' => 'nullable|string|max:255',
+            'selected_categories' => 'nullable|array',
+            'selected_categories.*.id' => 'nullable',
+            'selected_categories.*.name' => 'nullable|string|max:255',
+            'selected_categories.*.parent_id' => 'nullable|integer',
+            'selected_categories.*.number_of_employee' => 'nullable|integer|min:1',
+            'job_descriptions' => 'nullable|array',
+            'job_descriptions.*.title' => 'nullable|string|max:255',
+            'job_descriptions.*.description' => 'nullable|string',
+            'is_use_my_current_company_location' => 'nullable|boolean',
+            'job_location' => 'nullable|array',
+            'job_location.job_location_country' => 'nullable|string|max:255',
+            'job_location.job_location_state' => 'nullable|string|max:255',
+            'job_location.job_location_zipcode' => 'nullable|string|max:20',
+            'job_location.job_location_full_address' => 'nullable|string|max:255',
+            'years_of_experience' => 'nullable|string|max:255',
+            'reason_for_hire' => 'nullable|string|max:255',
+            'note' => 'nullable|string',
+            'hire_for_my_current_company' => 'nullable|boolean',
+            'company_info' => 'nullable|array',
+            'company_info.name' => 'nullable|string|max:255',
+            'company_info.size' => 'nullable|string|max:255',
+            'company_info.industry' => 'nullable|string|max:255',
+            'company_info.description' => 'nullable|string',
+            'total_hours' => 'nullable|integer',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date',
         ];
 
-        // Create a validator instance
+        // Validate request
         $validator = Validator::make($request->all(), $rules);
 
-        // Check if validation fails
         if ($validator->fails()) {
             return response()->json([
                 'message' => 'Validation failed',
                 'errors' => $validator->errors(),
-            ], 422); // Return 422 Unprocessable Entity status
+            ], 422);
         }
 
-        // Check if user exists by email
-        $user = User::where('email', $request->email)->first();
+        $user = \Illuminate\Support\Facades\Auth::user();
 
         if (!$user) {
-            // Create new user with a random password
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make(Str::random(12)), // Random password
-            ]);
+            return response()->json([
+                'message' => 'Unauthorized',
+            ], 401);
         }
 
-        // Create quote and link to user
+        // Determine job_location based on is_use_my_current_company_location flag
+        $job_location = $request->job_location;
+
+        if ($request->is_use_my_current_company_location) {
+            // Get location from authenticated user
+            $job_location = [
+                'job_location_country' => $user->country,
+                'job_location_state' => $user->state,
+                'job_location_zipcode' => $user->zip_code,
+                'job_location_full_address' => $user->full_address,
+            ];
+        }
+
+        // Determine company_info based on hire_for_my_current_company flag
+        $company_info = $request->company_info;
+
+        if ($request->hire_for_my_current_company) {
+            // Fetch employer info if hire_for_my_current_company is true
+            $employer = $user->employer; // Assuming the employer relationship is defined
+
+            if ($employer) {
+                $company_info = [
+                    'name' => $employer->company_name,
+                    'size' => $employer->company_size,
+                    'industry' => $employer->industry,
+                    'description' => $employer->company_description,
+                ];
+            }
+        }
+
+        // Create new RequestQuote linked to authenticated user
         $quote = RequestQuote::create([
             'user_id' => $user->id,
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'how_did_you_hear' => $request->how_did_you_hear,
-            'event_date' => $request->event_date,
-            'start_time' => $request->start_time,
-            'categories' => json_encode($request->categories), // Store the categories as a JSON string
-            'number_of_guests' => $request->number_of_guests,
-            'event_location' => $request->event_location,
-            'event_details' => $request->event_details,
-            'area' => $request->area, // Added area field
-            'type_of_hiring' => $request->type_of_hiring, // Added type_of_hiring field
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+
+            'selected_industry' => $request->selected_industry,
+            'selected_categories' => $request->selected_categories,
+            'job_descriptions' => $request->job_descriptions,
+            'is_use_my_current_company_location' => $request->is_use_my_current_company_location,
+            'job_location' => $job_location,
+            'years_of_experience' => $request->years_of_experience,
+            'reason_for_hire' => $request->reason_for_hire,
+            'note' => $request->note,
+            'hire_for_my_current_company' => $request->hire_for_my_current_company,
+            'company_info' => $company_info,
+            'total_hours' => $request->total_hours,
+            'start_date' => $request->start_date ? Carbon::parse($request->start_date)->format('Y-m-d H:i:s') : null,
+            'end_date' => $request->end_date ? Carbon::parse($request->end_date)->format('Y-m-d H:i:s') : null,
         ]);
 
         return response()->json([
@@ -78,6 +121,9 @@ class RequestQuoteController extends Controller
             'quote' => $quote,
         ], 201);
     }
+
+
+
 
     public function getJobSeekersByRequestQuote($requestQuoteId)
     {

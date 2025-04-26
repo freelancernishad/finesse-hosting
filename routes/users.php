@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\JobSeeker\JobSeekerController;
 use App\Http\Controllers\Api\JobSeeker\JobApplicationController;
 use App\Http\Controllers\Api\Auth\User\UserPasswordResetController;
 use App\Http\Controllers\Api\User\UserManagement\UserProfileController;
+use App\Http\Controllers\Api\Global\RequestQuote\RequestQuoteController;
 
 Route::prefix('auth/user')->group(function () { // Prefix for job seeker routes
     Route::post('register', [AuthUserController::class, 'register'])->name('user.register');
@@ -44,7 +45,7 @@ Route::prefix('user')->group(function () {
         Route::get('/job-applications', [JobApplicationController::class, 'getJobList']);
 
 
-
+        Route::post('/request-quote', [RequestQuoteController::class, 'store']);
 
 
 
