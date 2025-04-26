@@ -6,17 +6,17 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
-use App\Models\RequestQuote;
+use App\Models\HiringRequest;
 
 class ReviewRequestMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $requestQuote;
+    public $HiringRequest;
 
-    public function __construct(RequestQuote $requestQuote)
+    public function __construct(HiringRequest $HiringRequest)
     {
-        $this->requestQuote = $requestQuote;
+        $this->HiringRequest = $HiringRequest;
     }
 
     public function build()
@@ -24,8 +24,8 @@ class ReviewRequestMail extends Mailable
         return $this->subject('Review Your Job Seekers')
                     ->view('emails.review_request')
                     ->with([
-                        'name' => $this->requestQuote->name,
-                        'jobSeekers' => $this->requestQuote->jobSeekers,
+                        'name' => $this->HiringRequest->name,
+                        'jobSeekers' => $this->HiringRequest->jobSeekers,
                     ]);
     }
 }

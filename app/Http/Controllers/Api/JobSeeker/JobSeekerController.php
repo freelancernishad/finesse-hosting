@@ -20,7 +20,7 @@ class JobSeekerController extends Controller
     {
         if (Auth::guard('admin')->check()) {
             // Admin is authenticated, fetch JobSeeker by ID
-            $jobSeeker = JobSeeker::with(['requestQuotes' => function ($query) {
+            $jobSeeker = JobSeeker::with(['HiringRequests' => function ($query) {
                 $query->whereIn('status', ['assigned', 'completed']); // Fetch both assigned and completed quotes
             }])->findOrFail($id);
         } else {
@@ -33,7 +33,7 @@ class JobSeekerController extends Controller
             }
 
             // Load assigned & completed request quotes for the job seeker
-            $jobSeeker->load(['requestQuotes' => function ($query) {
+            $jobSeeker->load(['HiringRequests' => function ($query) {
                 $query->whereIn('status', ['assigned', 'completed']); // Fetch both assigned and completed quotes
             }]);
         }
@@ -63,9 +63,9 @@ class JobSeekerController extends Controller
             'approved_job_roles' => $jobSeeker->approved_job_roles,
             'last_review' => $jobSeeker->last_review,
             'applied_jobs' => $jobSeeker->applied_jobs,
-            'is_assigned_quote' => $jobSeeker->requestQuotes->where('status', 'assigned')->isNotEmpty(),
-            'assigned_quotes' => $jobSeeker->requestQuotes->where('status', 'assigned')->values(),
-            'completed_quotes' => $jobSeeker->requestQuotes->where('status', 'completed')->values(),
+            'is_assigned_quote' => $jobSeeker->HiringRequests->where('status', 'assigned')->isNotEmpty(),
+            'assigned_quotes' => $jobSeeker->HiringRequests->where('status', 'assigned')->values(),
+            'completed_quotes' => $jobSeeker->HiringRequests->where('status', 'completed')->values(),
         ]);
     }
 

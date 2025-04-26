@@ -7,7 +7,7 @@ use App\Http\Controllers\Api\Admin\JobSeeker\JobSeekerController;
 use App\Http\Controllers\Api\Admin\JobCategory\JobCategoryController;
 use App\Http\Controllers\Api\Admin\JobSeeker\JobApplicationController;
 use App\Http\Controllers\Api\Admin\DashboardMetrics\DashboardController;
-use App\Http\Controllers\Api\Admin\JobSeeker\JobSeekerRequestQuoteController;
+use App\Http\Controllers\Api\Admin\JobSeeker\JobSeekerHiringRequestController;
 
 
 Route::prefix('auth/admin')->group(function () {
@@ -40,7 +40,7 @@ Route::prefix('admin')->group(function () {
             Route::get('{id}', [App\Http\Controllers\Api\JobSeeker\JobSeekerController::class, 'getProfile']); // Show a specific JobSeeker
             Route::post('{id}', [JobSeekerController::class, 'update']); // Update a JobSeeker
             Route::delete('{id}', [JobSeekerController::class, 'destroy']); // Delete a JobSeeker
-            Route::get('/request-quote/{requestQuoteId}/job-seekers', [JobSeekerController::class, 'getJobSeekersByRequestQuote']); // Get JobSeekers by RequestQuote
+            Route::get('/request-quote/{HiringRequestId}/job-seekers', [JobSeekerController::class, 'getJobSeekersByHiringRequest']); // Get JobSeekers by HiringRequest
         });
 
 
@@ -81,13 +81,13 @@ Route::prefix('admin')->group(function () {
 
 
 
-            Route::get('/available-job-seekers', [JobSeekerRequestQuoteController::class, 'getAvailableJobSeekers']);
+            Route::get('/available-job-seekers', [JobSeekerHiringRequestController::class, 'getAvailableJobSeekers']);
 
-            Route::get('request-quotes', [JobSeekerRequestQuoteController::class, 'index']);
-            Route::get('request-quote/{id}', [JobSeekerRequestQuoteController::class, 'show']);
-            Route::post('request-quote/{id}/assign-job-seekers', [JobSeekerRequestQuoteController::class, 'assignJobSeekers']);
-            Route::put('request-quote/{id}/update-status', [JobSeekerRequestQuoteController::class, 'updateStatus']);
-            Route::post('request-quote/{id}/confirm-quote', [JobSeekerRequestQuoteController::class, 'confirmQuote']);
+            Route::get('request-quotes', [JobSeekerHiringRequestController::class, 'index']);
+            Route::get('request-quote/{id}', [JobSeekerHiringRequestController::class, 'show']);
+            Route::post('request-quote/{id}/assign-job-seekers', [JobSeekerHiringRequestController::class, 'assignJobSeekers']);
+            Route::put('request-quote/{id}/update-status', [JobSeekerHiringRequestController::class, 'updateStatus']);
+            Route::post('request-quote/{id}/confirm-quote', [JobSeekerHiringRequestController::class, 'confirmQuote']);
 
 
 

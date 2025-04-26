@@ -1,21 +1,21 @@
 <?php
 
-namespace App\Http\Controllers\Api\Global\RequestQuote;
+namespace App\Http\Controllers\Api\Global\HiringRequest;
 
+use Carbon\Carbon;
 use App\Models\User;
 use Illuminate\Support\Str;
-use App\Models\RequestQuote;
 use Illuminate\Http\Request;
+use App\Models\HiringRequest;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
-class RequestQuoteController extends Controller
+class HiringRequestController extends Controller
 {
     public function store(Request $request)
     {
-        // Define validation rules for new fields
         $rules = [
             'selected_industry' => 'nullable|string|max:255',
             'selected_categories' => 'nullable|array',
@@ -46,29 +46,28 @@ class RequestQuoteController extends Controller
             'end_date' => 'nullable|date',
         ];
 
-        // Validate request
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation failed',
+                'status' => false,
+                'message' => 'Validation errors occurred.',
                 'errors' => $validator->errors(),
             ], 422);
         }
 
-        $user = \Illuminate\Support\Facades\Auth::user();
+        $user = Auth::user();
 
         if (!$user) {
             return response()->json([
-                'message' => 'Unauthorized',
+                'status' => false,
+                'message' => 'Unauthorized access. Please login first.',
             ], 401);
         }
 
-        // Determine job_location based on is_use_my_current_company_location flag
         $job_location = $request->job_location;
 
         if ($request->is_use_my_current_company_location) {
-            // Get location from authenticated user
             $job_location = [
                 'job_location_country' => $user->country,
                 'job_location_state' => $user->state,
@@ -77,12 +76,10 @@ class RequestQuoteController extends Controller
             ];
         }
 
-        // Determine company_info based on hire_for_my_current_company flag
         $company_info = $request->company_info;
 
         if ($request->hire_for_my_current_company) {
-            // Fetch employer info if hire_for_my_current_company is true
-            $employer = $user->employer; // Assuming the employer relationship is defined
+            $employer = $user->employer; // Make sure user has 'employer' relationship
 
             if ($employer) {
                 $company_info = [
@@ -91,16 +88,19 @@ class RequestQuoteController extends Controller
                     'industry' => $employer->industry,
                     'description' => $employer->company_description,
                 ];
+            } else {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Employer profile not found. Please update your employer profile first.',
+                ], 404);
             }
         }
 
-        // Create new RequestQuote linked to authenticated user
-        $quote = RequestQuote::create([
+        $hiringRequest = HiringRequest::create([
             'user_id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
             'phone' => $user->phone,
-
             'selected_industry' => $request->selected_industry,
             'selected_categories' => $request->selected_categories,
             'job_descriptions' => $request->job_descriptions,
@@ -117,23 +117,29 @@ class RequestQuoteController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Request a Quote submitted successfully!',
-            'quote' => $quote,
+            'status' => true,
+            'message' => 'Hiring request submitted successfully!',
+            'data' => $hiringRequest,
         ], 201);
     }
 
-
-
-
-    public function getJobSeekersByRequestQuote($requestQuoteId)
+    public function getJobSeekersByHiringRequest($hiringRequestId)
     {
-        // Validate that the RequestQuote exists
-        $requestQuote = RequestQuote::findOrFail($requestQuoteId);
+        $hiringRequest = HiringRequest::find($hiringRequestId);
 
-        // Get all JobSeekers associated with the RequestQuote
-        $jobSeekers = $requestQuote->jobSeekers;
+        if (!$hiringRequest) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Hiring Request not found.',
+            ], 404);
+        }
 
-        // Return the list of JobSeekers
-        return response()->json($jobSeekers, 200);
+        $jobSeekers = $hiringRequest->jobSeekers;
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Job seekers fetched successfully.',
+            'data' => $jobSeekers,
+        ], 200);
     }
 }

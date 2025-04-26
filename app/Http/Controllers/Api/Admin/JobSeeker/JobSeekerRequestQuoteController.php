@@ -4,25 +4,25 @@ namespace App\Http\Controllers\Api\Admin\JobSeeker;
 
 use Stripe\Stripe;
 use App\Models\JobSeeker;
-use App\Models\RequestQuote;
+use App\Models\HiringRequest;
 use Illuminate\Http\Request;
 use Stripe\Checkout\Session;
 use App\Mail\ReviewRequestMail;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\RequestQuotePaymentMail;
+use App\Mail\HiringRequestPaymentMail;
 use Illuminate\Support\Facades\Validator;
 
-class JobSeekerRequestQuoteController extends Controller
+class JobSeekerHiringRequestController extends Controller
 {
-    // Get all RequestQuotes with related JobSeekers
+    // Get all HiringRequests with related JobSeekers
     public function index(Request $request)
     {
         $perPage = $request->input('per_page', 10); // Default to 10 per page
         $status = $request->input('status'); // Get status filter from request
 
-        $query = RequestQuote::with([
+        $query = HiringRequest::with([
             'jobSeekers' => function ($query) {
                 $query->select('job_seekers.id', 'job_seekers.name', 'job_seekers.member_id')
                       ->withPivot('salary');
@@ -34,11 +34,11 @@ class JobSeekerRequestQuoteController extends Controller
             $query->where('status', $status);
         }
 
-        $requestQuotes = $query->paginate($perPage); // Apply pagination
+        $HiringRequests = $query->paginate($perPage); // Apply pagination
 
         // Hide attributes from jobSeekers
-        $requestQuotes->getCollection()->each(function ($requestQuote) {
-            $requestQuote->jobSeekers->each(function ($jobSeeker) {
+        $HiringRequests->getCollection()->each(function ($HiringRequest) {
+            $HiringRequest->jobSeekers->each(function ($jobSeeker) {
                 $jobSeeker->makeHidden([
                     'average_review_rating',
                     'review_summary',
@@ -49,7 +49,7 @@ class JobSeekerRequestQuoteController extends Controller
             });
         });
 
-        return response()->json($requestQuotes);
+        return response()->json($HiringRequests);
     }
 
 
@@ -58,23 +58,23 @@ class JobSeekerRequestQuoteController extends Controller
 
 
 
-    // Show a specific RequestQuote with JobSeekers
+    // Show a specific HiringRequest with JobSeekers
     public function show($id)
     {
-        $requestQuote = RequestQuote::with('jobSeekers')->find($id);
+        $HiringRequest = HiringRequest::with('jobSeekers')->find($id);
 
 
-        $requestQuote->categories = json_decode($requestQuote->categories);
+        $HiringRequest->categories = json_decode($HiringRequest->categories);
 
 
-        if (!$requestQuote) {
-            return response()->json(['message' => 'RequestQuote not found'], 404);
+        if (!$HiringRequest) {
+            return response()->json(['message' => 'HiringRequest not found'], 404);
         }
 
-        return response()->json($requestQuote);
+        return response()->json($HiringRequest);
     }
 
-    // Assign JobSeekers to a RequestQuote
+    // Assign JobSeekers to a HiringRequest
     public function assignJobSeekers(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
@@ -87,10 +87,10 @@ class JobSeekerRequestQuoteController extends Controller
             return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
         }
 
-        $requestQuote = RequestQuote::find($id);
+        $HiringRequest = HiringRequest::find($id);
 
-        if (!$requestQuote) {
-            return response()->json(['message' => 'RequestQuote not found'], 404);
+        if (!$HiringRequest) {
+            return response()->json(['message' => 'HiringRequest not found'], 404);
         }
 
         // Prepare data for syncing
@@ -100,13 +100,13 @@ class JobSeekerRequestQuoteController extends Controller
         }
 
         // Sync job seekers with salaries
-        $requestQuote->jobSeekers()->sync($jobSeekerData);
+        $HiringRequest->jobSeekers()->sync($jobSeekerData);
 
-                // Update the status of the RequestQuote
-                $requestQuote->status = 'assigned';
-                $requestQuote->save();
+                // Update the status of the HiringRequest
+                $HiringRequest->status = 'assigned';
+                $HiringRequest->save();
 
-        return response()->json(['message' => 'JobSeekers assigned successfully!', 'request_quote' => $requestQuote]);
+        return response()->json(['message' => 'JobSeekers assigned successfully!', 'request_quote' => $HiringRequest]);
     }
 
     // Update status and assign JobSeekers if status is 'assigned'
@@ -122,31 +122,31 @@ class JobSeekerRequestQuoteController extends Controller
             return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
         }
 
-        $requestQuote = RequestQuote::find($id);
+        $HiringRequest = HiringRequest::find($id);
 
-        if (!$requestQuote) {
-            return response()->json(['message' => 'RequestQuote not found'], 404);
+        if (!$HiringRequest) {
+            return response()->json(['message' => 'HiringRequest not found'], 404);
         }
 
         // If status is 'assigned', assign JobSeekers
         if ($request->status == 'assigned') {
-            $requestQuote->assignJobSeekers($request->job_seeker_ids);
+            $HiringRequest->assignJobSeekers($request->job_seeker_ids);
         }
 
-        // Update the status of the RequestQuote
-        $requestQuote->status = $request->status;
-        $requestQuote->save();
+        // Update the status of the HiringRequest
+        $HiringRequest->status = $request->status;
+        $HiringRequest->save();
 
         // If status is 'completed', send an email for review
         if ($request->status == 'completed') {
             try {
-                Mail::to($requestQuote->email)->send(new ReviewRequestMail($requestQuote));
-                Log::info('Email sent successfully to: ' . $requestQuote->email);
+                Mail::to($HiringRequest->email)->send(new ReviewRequestMail($HiringRequest));
+                Log::info('Email sent successfully to: ' . $HiringRequest->email);
             } catch (\Exception $e) {
                 Log::error('Failed to send email: ' . $e->getMessage());
             }
         }
-        return response()->json(['message' => 'RequestQuote status updated successfully!', 'request_quote' => $requestQuote]);
+        return response()->json(['message' => 'HiringRequest status updated successfully!', 'request_quote' => $HiringRequest]);
     }
 
 
@@ -154,7 +154,7 @@ class JobSeekerRequestQuoteController extends Controller
 {
     // Validate request
     $request->validate([
-        'request_quote_id' => 'nullable|exists:request_quotes,id', // Nullable to allow missing request_quote_id
+        'request_quote_id' => 'nullable|exists:hiring_requests,id', // Nullable to allow missing request_quote_id
         'per_page' => 'nullable|integer|min:1', // Validate per_page to ensure it's a positive integer
     ]);
 
@@ -166,13 +166,13 @@ class JobSeekerRequestQuoteController extends Controller
 
     // If request_quote_id is provided, filter based on it
     if ($request->has('request_quote_id')) {
-        // Get the RequestQuote
-        $requestQuote = RequestQuote::findOrFail($request->request_quote_id);
+        // Get the HiringRequest
+        $HiringRequest = HiringRequest::findOrFail($request->request_quote_id);
 
         // First decode the JSON string if it's still a string
-        $categories = is_string($requestQuote->categories)
-            ? json_decode($requestQuote->categories, true)
-            : $requestQuote->categories;
+        $categories = is_string($HiringRequest->categories)
+            ? json_decode($HiringRequest->categories, true)
+            : $HiringRequest->categories;
 
         // Now extract the names
         $requestedCategoryNames = array_map(function($category) {
@@ -185,10 +185,10 @@ class JobSeekerRequestQuoteController extends Controller
 
 
 
-        // Get job seekers assigned to active RequestQuotes
+        // Get job seekers assigned to active HiringRequests
         $assignedJobSeekerIds = \DB::table('job_seeker_request_quote')
-            ->join('request_quotes', 'job_seeker_request_quote.request_quote_id', '=', 'request_quotes.id')
-            ->where('request_quotes.status', '!=', 'completed') // Exclude completed ones
+            ->join('hiring_requests', 'job_seeker_request_quote.request_quote_id', '=', 'hiring_requests.id')
+            ->where('hiring_requests.status', '!=', 'completed') // Exclude completed ones
             ->pluck('job_seeker_id')
             ->toArray();
         Log::info('Assigned job seeker IDs: ' . implode(', ', $assignedJobSeekerIds));
@@ -251,14 +251,14 @@ class JobSeekerRequestQuoteController extends Controller
             return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
         }
 
-        $requestQuote = RequestQuote::find($id);
+        $HiringRequest = HiringRequest::find($id);
 
-        if (!$requestQuote) {
-            return response()->json(['message' => 'RequestQuote not found'], 404);
+        if (!$HiringRequest) {
+            return response()->json(['message' => 'HiringRequest not found'], 404);
         }
 
-        // Update RequestQuote details
-        $requestQuote->update([
+        // Update HiringRequest details
+        $HiringRequest->update([
             'area' => $request->area,
             'name' => $request->name,
             'email' => $request->email,
@@ -286,9 +286,9 @@ class JobSeekerRequestQuoteController extends Controller
                     'price_data' => [
                         'currency' => 'usd',  // You can change to your desired currency
                         'product_data' => [
-                            'name' => 'Event Budget: ' . $requestQuote->name,
+                            'name' => 'Event Budget: ' . $HiringRequest->name,
                         ],
-                        'unit_amount' => $requestQuote->budget * 100, // Stripe requires the amount in cents
+                        'unit_amount' => $HiringRequest->budget * 100, // Stripe requires the amount in cents
                     ],
                     'quantity' => 1,
                 ],
@@ -302,10 +302,10 @@ class JobSeekerRequestQuoteController extends Controller
 
         ]);
 
-        // Send email with Stripe payment link to the RequestQuote email
-        Mail::to($requestQuote->email)->send(new RequestQuotePaymentMail($requestQuote, $session->url));
+        // Send email with Stripe payment link to the HiringRequest email
+        Mail::to($HiringRequest->email)->send(new HiringRequestPaymentMail($HiringRequest, $session->url));
 
-        return response()->json(['message' => 'RequestQuote confirmed successfully! A payment link has been sent to your email.', 'request_quote' => $requestQuote]);
+        return response()->json(['message' => 'HiringRequest confirmed successfully! A payment link has been sent to your email.', 'request_quote' => $HiringRequest]);
     }
 
 

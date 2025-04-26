@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\JobSeeker;
 use App\Models\AppliedJob;
-use App\Models\RequestQuote;
+use App\Models\HiringRequest;
 use App\Models\JobCategory;
 use Carbon\Carbon;
 
@@ -17,13 +17,13 @@ class DashboardController extends Controller
         // Total counts
         $totalJobSeekers = JobSeeker::count();
         $totalJobApplications = AppliedJob::count();
-        $totalRequestQuotes = RequestQuote::count();
+        $totalHiringRequests = HiringRequest::count();
         $totalJobCategories = JobCategory::count();
 
         // Recent activity counts (last 7 days)
         $recentJobSeekers = JobSeeker::where('created_at', '>=', Carbon::now()->subDays(7))->count();
         $recentJobApplications = AppliedJob::where('created_at', '>=', Carbon::now()->subDays(7))->count();
-        $recentRequestQuotes = RequestQuote::where('created_at', '>=', Carbon::now()->subDays(7))->count();
+        $recentHiringRequests = HiringRequest::where('created_at', '>=', Carbon::now()->subDays(7))->count();
 
         // Status breakdowns
         $jobApplicationStatuses = AppliedJob::selectRaw('status, count(*) as count')
@@ -31,7 +31,7 @@ class DashboardController extends Controller
             ->get()
             ->pluck('count', 'status');
 
-        $requestQuoteStatuses = RequestQuote::selectRaw('status, count(*) as count')
+        $HiringRequestStatuses = HiringRequest::selectRaw('status, count(*) as count')
             ->groupBy('status')
             ->get()
             ->pluck('count', 'status');
@@ -40,18 +40,18 @@ class DashboardController extends Controller
             'total_counts' => [
                 'job_seekers' => $totalJobSeekers,
                 'job_applications' => $totalJobApplications,
-                'request_quotes' => $totalRequestQuotes,
+                'hiring_requests' => $totalHiringRequests,
                 'job_categories' => $totalJobCategories,
             ],
             'recent_activity' => [
                 'job_seekers' => $recentJobSeekers,
                 'job_applications' => $recentJobApplications,
-                'request_quotes' => $recentRequestQuotes,
+                'hiring_requests' => $recentHiringRequests,
                 'time_period' => 'last_7_days',
             ],
             'status_breakdowns' => [
                 'job_applications' => $jobApplicationStatuses,
-                'request_quotes' => $requestQuoteStatuses,
+                'hiring_requests' => $HiringRequestStatuses,
             ]
         ]);
     }
@@ -62,7 +62,7 @@ class DashboardController extends Controller
         $months = [];
         $jobSeekerData = [];
         $jobApplicationData = [];
-        $requestQuoteData = [];
+        $HiringRequestData = [];
 
         for ($i = 5; $i >= 0; $i--) {
             $date = Carbon::now()->subMonths($i);
@@ -74,7 +74,7 @@ class DashboardController extends Controller
 
             $jobSeekerData[] = JobSeeker::whereBetween('created_at', [$start, $end])->count();
             $jobApplicationData[] = AppliedJob::whereBetween('created_at', [$start, $end])->count();
-            $requestQuoteData[] = RequestQuote::whereBetween('created_at', [$start, $end])->count();
+            $HiringRequestData[] = HiringRequest::whereBetween('created_at', [$start, $end])->count();
         }
 
 // Top job categories by applications
@@ -96,10 +96,10 @@ $topCategories = JobCategory::select([
     ];
 });
 
-        // Get job seekers assigned to active RequestQuotes (status != 'completed')
+        // Get job seekers assigned to active HiringRequests (status != 'completed')
         $assignedJobSeekerIds = \DB::table('job_seeker_request_quote')
-            ->join('request_quotes', 'job_seeker_request_quote.request_quote_id', '=', 'request_quotes.id')
-            ->where('request_quotes.status', '!=', 'completed')
+            ->join('hiring_requests', 'job_seeker_request_quote.request_quote_id', '=', 'hiring_requests.id')
+            ->where('hiring_requests.status', '!=', 'completed')
             ->pluck('job_seeker_id')
             ->toArray();
 
@@ -110,14 +110,14 @@ $topCategories = JobCategory::select([
         $availableJobSeekers = $totalJobSeekers - count(array_unique($assignedJobSeekerIds));
 
         // Active request quotes count
-        $activeRequestQuotesCount = RequestQuote::where('status', '!=', 'completed')->count();
+        $activeHiringRequestsCount = HiringRequest::where('status', '!=', 'completed')->count();
 
         return response()->json([
             'monthly_trends' => [
                 'months' => $months,
                 'job_seekers' => $jobSeekerData,
                 'job_applications' => $jobApplicationData,
-                'request_quotes' => $requestQuoteData,
+                'hiring_requests' => $HiringRequestData,
             ],
             'top_categories' => $topCategories,
             'job_seeker_availability' => [
@@ -125,10 +125,10 @@ $topCategories = JobCategory::select([
                 'assigned_to_active_requests' => count(array_unique($assignedJobSeekerIds)),
                 'total' => $totalJobSeekers,
             ],
-            'active_request_quotes' => $activeRequestQuotesCount,
+            'active_hiring_requests' => $activeHiringRequestsCount,
             'metrics' => [
-                'average_seekers_per_active_request' => $activeRequestQuotesCount > 0
-                    ? count($assignedJobSeekerIds) / $activeRequestQuotesCount
+                'average_seekers_per_active_request' => $activeHiringRequestsCount > 0
+                    ? count($assignedJobSeekerIds) / $activeHiringRequestsCount
                     : 0,
             ]
         ]);
@@ -152,7 +152,7 @@ $topCategories = JobCategory::select([
             });
 
         // Recent request quotes
-        $recentQuotes = RequestQuote::orderBy('created_at', 'desc')
+        $recentQuotes = HiringRequest::orderBy('created_at', 'desc')
             ->limit(5)
             ->get()
             ->map(function($quote) {

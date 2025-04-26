@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddRequestQuoteIdToReviewsTable extends Migration
+class AddHiringRequestIdToReviewsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -15,7 +15,7 @@ class AddRequestQuoteIdToReviewsTable extends Migration
     {
         Schema::table('reviews', function (Blueprint $table) {
             $table->unsignedBigInteger('request_quote_id')->nullable()->after('reviewer_type'); // Ensure after 'reviewer_type' or adjust as necessary
-            $table->foreign('request_quote_id')->references('id')->on('request_quotes')->onDelete('cascade');
+            $table->foreign('request_quote_id')->references('id')->on('hiring_requests')->onDelete('cascade');
         });
     }
 

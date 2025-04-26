@@ -5,7 +5,7 @@ use App\Http\Controllers\Api\Global\ReviewController;
 use App\Http\Controllers\Api\Server\ServerStatusController;
 use App\Http\Controllers\Api\User\Package\UserPackageController;
 use App\Http\Controllers\Api\Admin\JobCategory\JobCategoryController;
-use App\Http\Controllers\Api\Global\RequestQuote\RequestQuoteController;
+use App\Http\Controllers\Api\Global\HiringRequest\HiringRequestController;
 use App\Http\Controllers\Api\User\PackageAddon\UserPackageAddonController;
 
 // Load InitialRoutes
@@ -70,12 +70,12 @@ Route::prefix('global/')->group(function () {
     Route::get('industries', [JobCategoryController::class, 'getJobCategories']);
 
 
-    Route::get('/request-quotes/{requestQuoteId}/job-seekers', [RequestQuoteController::class, 'getJobSeekersByRequestQuote']);
+    Route::get('/request-quotes/{HiringRequestId}/job-seekers', [HiringRequestController::class, 'getJobSeekersByHiringRequest']);
 
 
 
-    Route::post('/request-quote', [RequestQuoteController::class, 'store']);
-    Route::post('request-quote/{requestQuoteId}/add-reviews', [ReviewController::class, 'addReviewsForRequestQuote']);
+    Route::post('/request-quote', [HiringRequestController::class, 'store']);
+    Route::post('request-quote/{HiringRequestId}/add-reviews', [ReviewController::class, 'addReviewsForHiringRequest']);
     Route::post('job-seeker/{jobSeekerId}/add-review', [ReviewController::class, 'addReviewForJobSeeker']);
 
 

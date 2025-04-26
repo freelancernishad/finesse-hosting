@@ -98,16 +98,16 @@
 
         <!-- Content -->
         <div class="content">
-            <p>Dear <strong>{{ $requestQuote->name }}</strong>,</p>
+            <p>Dear <strong>{{ $HiringRequest->name }}</strong>,</p>
             <p>Thank you for your request! Below are the details of your event. Please complete the payment to confirm your booking.</p>
 
             <!-- Order Summary -->
             <div class="order-summary">
-                <p><strong>Event Date:</strong> {{ date('F j, Y', strtotime($requestQuote->event_date)) }}</p>
-                <p><strong>Start Time:</strong> {{ $requestQuote->start_time }}</p>
-                <p><strong>Location:</strong> {{ $requestQuote->event_location }}</p>
-                <p><strong>Number of Guests:</strong> {{ $requestQuote->number_of_guests }}</p>
-                <p><strong>Budget:</strong> ${{ number_format($requestQuote->budget, 2) }}</p>
+                <p><strong>Event Date:</strong> {{ date('F j, Y', strtotime($HiringRequest->event_date)) }}</p>
+                <p><strong>Start Time:</strong> {{ $HiringRequest->start_time }}</p>
+                <p><strong>Location:</strong> {{ $HiringRequest->event_location }}</p>
+                <p><strong>Number of Guests:</strong> {{ $HiringRequest->number_of_guests }}</p>
+                <p><strong>Budget:</strong> ${{ number_format($HiringRequest->budget, 2) }}</p>
             </div>
 
             <!-- Categories Table -->
@@ -120,7 +120,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach(json_decode($requestQuote->categories, true) as $category)
+                    @foreach(json_decode($HiringRequest->categories, true) as $category)
                     <tr>
                         <td>{{ $category['name'] }}</td>
                         <td>{{ $category['count'] }}</td>

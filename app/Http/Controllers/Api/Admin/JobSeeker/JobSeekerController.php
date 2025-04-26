@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api\Admin\JobSeeker;
 
 
 use App\Models\JobSeeker;
-use App\Models\RequestQuote;
+use App\Models\HiringRequest;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
@@ -27,8 +27,8 @@ class JobSeekerController extends Controller
 
          $perPage = $request->input('per_page', 10);
 
-         // Retrieve paginated job seekers with assigned requestQuotes only
-         $jobSeekers = JobSeeker::with(['requestQuotes' => function ($query) {
+         // Retrieve paginated job seekers with assigned HiringRequests only
+         $jobSeekers = JobSeeker::with(['HiringRequests' => function ($query) {
              $query->where('status', 'assigned'); // Only fetch assigned quotes
          }])->paginate($perPage);
 
@@ -44,8 +44,8 @@ class JobSeekerController extends Controller
                  'average_review_rating' => $jobSeeker->average_review_rating,
                  'total_reviews' => $jobSeeker->total_reviews,
 
-                 'is_assigned_quote' => $jobSeeker->requestQuotes->isNotEmpty(), // Check if assigned any quote
-                 'assigned_quotes' => $jobSeeker->requestQuotes->map(function ($quote) {
+                 'is_assigned_quote' => $jobSeeker->HiringRequests->isNotEmpty(), // Check if assigned any quote
+                 'assigned_quotes' => $jobSeeker->HiringRequests->map(function ($quote) {
 
 
                     return $quote;
@@ -125,7 +125,7 @@ class JobSeekerController extends Controller
      */
     public function show($id)
 {
-    $jobSeeker = JobSeeker::with(['requestQuotes' => function ($query) {
+    $jobSeeker = JobSeeker::with(['HiringRequests' => function ($query) {
         $query->whereIn('status', ['assigned', 'completed']); // Fetch both assigned and completed quotes
     }])->findOrFail($id);
 
@@ -154,9 +154,9 @@ class JobSeekerController extends Controller
         'approved_job_roles' => $jobSeeker->approved_job_roles,
         'last_review' => $jobSeeker->last_review,
         'applied_jobs' => $jobSeeker->applied_jobs,
-        'is_assigned_quote' => $jobSeeker->requestQuotes->where('status', 'assigned')->isNotEmpty(),
-        'assigned_quotes' => $jobSeeker->requestQuotes->where('status', 'assigned')->values(),
-        'completed_quotes' => $jobSeeker->requestQuotes->where('status', 'completed')->values(),
+        'is_assigned_quote' => $jobSeeker->HiringRequests->where('status', 'assigned')->isNotEmpty(),
+        'assigned_quotes' => $jobSeeker->HiringRequests->where('status', 'assigned')->values(),
+        'completed_quotes' => $jobSeeker->HiringRequests->where('status', 'completed')->values(),
     ]);
 }
 
@@ -231,18 +231,18 @@ class JobSeekerController extends Controller
     }
 
     /**
-     * Get JobSeekers by RequestQuote ID
+     * Get JobSeekers by HiringRequest ID
      *
-     * @param  int  $requestQuoteId
+     * @param  int  $HiringRequestId
      * @return \Illuminate\Http\Response
      */
-    public function getJobSeekersByRequestQuote($requestQuoteId)
+    public function getJobSeekersByHiringRequest($HiringRequestId)
     {
-        // Find the RequestQuote
-        $requestQuote = RequestQuote::findOrFail($requestQuoteId);
+        // Find the HiringRequest
+        $HiringRequest = HiringRequest::findOrFail($HiringRequestId);
 
         // Get all associated JobSeekers
-        $jobSeekers = $requestQuote->jobSeekers;
+        $jobSeekers = $HiringRequest->jobSeekers;
 
         return response()->json( $jobSeekers, 200);
     }

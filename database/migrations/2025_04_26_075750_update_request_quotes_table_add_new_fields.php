@@ -4,14 +4,14 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class UpdateRequestQuotesTableAddNewFields extends Migration
+class UpdateHiringRequestsTableAddNewFields extends Migration
 {
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        Schema::table('request_quotes', function (Blueprint $table) {
+        Schema::table('hiring_requests', function (Blueprint $table) {
             $table->string('selected_industry')->nullable()->after('id');
             $table->json('selected_categories')->nullable()->after('selected_industry');
             $table->json('job_descriptions')->nullable()->after('selected_categories');
@@ -33,7 +33,7 @@ class UpdateRequestQuotesTableAddNewFields extends Migration
      */
     public function down(): void
     {
-        Schema::table('request_quotes', function (Blueprint $table) {
+        Schema::table('hiring_requests', function (Blueprint $table) {
             $table->dropColumn([
                 'selected_industry',
                 'selected_categories',
