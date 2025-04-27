@@ -42,6 +42,14 @@ class HiringRequest extends Model
         'total_hours',
         'start_date',
         'end_date',
+        'model_name',
+
+
+
+        'expected_joining_date',
+        'min_yearly_salary',
+        'mix_yearly_salary',
+
     ];
 
     protected $casts = [
@@ -54,6 +62,9 @@ class HiringRequest extends Model
         'hire_for_my_current_company' => 'boolean',
         'start_date' => 'datetime',
         'end_date' => 'datetime',
+        'expected_joining_date' => 'datetime',
+        'min_yearly_salary' => 'decimal:2',
+        'mix_yearly_salary' => 'decimal:2',
     ];
 
     protected $appends = ['rating', 'review_comment'];

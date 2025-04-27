@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 
 class HiringRequestController extends Controller
 {
+
     public function store(Request $request)
     {
         $rules = [
@@ -44,6 +45,13 @@ class HiringRequestController extends Controller
             'total_hours' => 'nullable|integer',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
+            'model_name' => 'nullable',
+
+
+            // For permanent hiring
+            'expected_joining_date' => 'nullable|date',
+            'min_yearly_salary' => 'nullable|numeric|min:0',
+            'mix_yearly_salary' => 'nullable|numeric|min:0',
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -114,6 +122,14 @@ class HiringRequestController extends Controller
             'total_hours' => $request->total_hours,
             'start_date' => $request->start_date ? Carbon::parse($request->start_date)->format('Y-m-d H:i:s') : null,
             'end_date' => $request->end_date ? Carbon::parse($request->end_date)->format('Y-m-d H:i:s') : null,
+            'model_name' => $request->model_name,
+
+
+
+            'expected_joining_date' => $request->expected_joining_date ? Carbon::parse($request->expected_joining_date)->format('Y-m-d H:i:s') : null,
+            'min_yearly_salary' => $request->min_yearly_salary,
+            'mix_yearly_salary' => $request->mix_yearly_salary,
+
         ]);
 
         return response()->json([
