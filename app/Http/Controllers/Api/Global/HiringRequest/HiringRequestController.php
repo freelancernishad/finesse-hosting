@@ -15,6 +15,9 @@ use Illuminate\Support\Facades\Auth;
 class HiringRequestController extends Controller
 {
 
+
+
+
     public function store(Request $request)
     {
         $rules = [

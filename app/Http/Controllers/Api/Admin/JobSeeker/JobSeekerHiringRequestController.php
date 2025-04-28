@@ -21,10 +21,12 @@ class JobSeekerHiringRequestController extends Controller
     {
         $perPage = $request->input('per_page', 10); // Default to 10 per page
         $status = $request->input('status'); // Get status filter from request
+        $userId = $request->input('user_id'); // Admin can filter by user_id
 
         $query = HiringRequest::with([
             'jobSeekers' => function ($query) {
-                $query->select('job_seekers.id', 'job_seekers.name', 'job_seekers.member_id')
+                $query->select('job_seekers.id', 'users.name as job_seeker_name', 'job_seekers.member_id')
+                      ->join('users', 'users.id', '=', 'job_seekers.user_id')
                       ->withPivot('salary');
             }
         ]);
@@ -34,7 +36,21 @@ class JobSeekerHiringRequestController extends Controller
             $query->where('status', $status);
         }
 
+        // 👇 Check Guard and Apply Filters
+        if (auth()->guard('admin')->check()) {
+            // Admin: can see all, or filter by user_id
+            if (!empty($userId)) {
+                $query->where('user_id', $userId);
+            }
+        } else if (auth()->guard('api')->check()) {
+            // Normal User: see only his/her own requests
+            $user = auth()->guard('api')->user();
+            $query->where('user_id', $user->id);
+        }
+
         $HiringRequests = $query->paginate($perPage); // Apply pagination
+
+        return response()->json($HiringRequests);
 
         // Hide attributes from jobSeekers
         $HiringRequests->getCollection()->each(function ($HiringRequest) {
@@ -51,6 +67,7 @@ class JobSeekerHiringRequestController extends Controller
 
         return response()->json($HiringRequests);
     }
+
 
 
 
@@ -154,7 +171,7 @@ class JobSeekerHiringRequestController extends Controller
 {
     // Validate request
     $request->validate([
-        'request_quote_id' => 'nullable|exists:hiring_requests,id', // Nullable to allow missing request_quote_id
+        'hiring_request_id' => 'nullable|exists:hiring_requests,id', // Nullable to allow missing hiring_request_id
         'per_page' => 'nullable|integer|min:1', // Validate per_page to ensure it's a positive integer
     ]);
 
@@ -164,10 +181,10 @@ class JobSeekerHiringRequestController extends Controller
     // Initialize the query for job seekers
     $query = JobSeeker::query();
 
-    // If request_quote_id is provided, filter based on it
-    if ($request->has('request_quote_id')) {
+    // If hiring_request_id is provided, filter based on it
+    if ($request->has('hiring_request_id')) {
         // Get the HiringRequest
-        $HiringRequest = HiringRequest::findOrFail($request->request_quote_id);
+        $HiringRequest = HiringRequest::findOrFail($request->hiring_request_id);
 
         // First decode the JSON string if it's still a string
         $categories = is_string($HiringRequest->categories)

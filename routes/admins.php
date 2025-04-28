@@ -83,11 +83,11 @@ Route::prefix('admin')->group(function () {
 
             Route::get('/available-job-seekers', [JobSeekerHiringRequestController::class, 'getAvailableJobSeekers']);
 
-            Route::get('request-quotes', [JobSeekerHiringRequestController::class, 'index']);
-            Route::get('request-quote/{id}', [JobSeekerHiringRequestController::class, 'show']);
-            Route::post('request-quote/{id}/assign-job-seekers', [JobSeekerHiringRequestController::class, 'assignJobSeekers']);
-            Route::put('request-quote/{id}/update-status', [JobSeekerHiringRequestController::class, 'updateStatus']);
-            Route::post('request-quote/{id}/confirm-quote', [JobSeekerHiringRequestController::class, 'confirmQuote']);
+            Route::get('hiring-request', [JobSeekerHiringRequestController::class, 'index']);
+            Route::get('hiring-request/{id}', [JobSeekerHiringRequestController::class, 'show']);
+            Route::post('hiring-request/{id}/assign-job-seekers', [JobSeekerHiringRequestController::class, 'assignJobSeekers']);
+            Route::put('hiring-request/{id}/update-status', [JobSeekerHiringRequestController::class, 'updateStatus']);
+            Route::post('hiring-request/{id}/confirm-request', [JobSeekerHiringRequestController::class, 'confirmQuote']);
 
 
 
