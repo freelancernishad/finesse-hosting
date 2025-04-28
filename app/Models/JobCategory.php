@@ -19,6 +19,7 @@ class JobCategory extends Model
         'name',
         'parent_id',
         'status',
+        'hourly_rate',
     ];
 
 

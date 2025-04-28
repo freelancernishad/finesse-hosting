@@ -59,16 +59,16 @@ class UserProfileController extends Controller
 
         // Validate user fields (name, profile picture, address)
         $basicValidator = Validator::make($request->all(), [
-            'name' => 'sometimes|string|max:255',
-            'profile_picture' => 'sometimes|image|max:2048',
+            'name' => 'nullable|string|max:255',
+            'profile_picture' => 'nullable|image|max:2048',
 
             // Address fields
-            'country' => 'sometimes|string|max:100',
-            'state' => 'sometimes|string|max:100',
-            'city' => 'sometimes|string|max:100',
-            'region' => 'sometimes|string|max:100',
-            'street_address' => 'sometimes|string|max:255',
-            'zip_code' => 'sometimes|string|max:20',
+            'country' => 'nullable|string|max:100',
+            'state' => 'nullable|string|max:100',
+            'city' => 'nullable|string|max:100',
+            'region' => 'nullable|string|max:100',
+            'street_address' => 'nullable|string|max:255',
+            'zip_code' => 'nullable|string|max:20',
         ]);
 
         if ($basicValidator->fails()) {
@@ -150,14 +150,14 @@ class UserProfileController extends Controller
             }
 
             $validator = Validator::make($request->all(), [
-                'id_no' => 'sometimes|string|max:255',
-                'phone_number' => 'sometimes|string|max:20',
-                'location' => 'sometimes|string|max:255',
-                'post_code' => 'sometimes|string|max:20',
-                'city' => 'sometimes|string|max:255',
-                'country' => 'sometimes|string|max:255',
-                'resume' => 'sometimes|file|mimes:pdf,doc,docx|max:2048',
-                'profile_picture' => 'sometimes|image|max:2048',
+                'id_no' => 'nullable|string|max:255',
+                'phone_number' => 'nullable|string|max:20',
+                'location' => 'nullable|string|max:255',
+                'post_code' => 'nullable|string|max:20',
+                'city' => 'nullable|string|max:255',
+                'country' => 'nullable|string|max:255',
+                'resume' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+                'profile_picture' => 'nullable|image|max:2048',
             ]);
 
             if ($validator->fails()) {
@@ -214,8 +214,8 @@ class UserProfileController extends Controller
             }
 
             $validator = Validator::make($request->all(), [
-                'name' => 'sometimes|string|max:255',
-                'profile_picture' => 'sometimes|string',
+                'name' => 'nullable|string|max:255',
+                'profile_picture' => 'nullable|string',
                 'company_name' => 'nullable|string|max:255',
                 'industry' => 'nullable|string|max:255',
                 'website' => 'nullable|string|max:255',

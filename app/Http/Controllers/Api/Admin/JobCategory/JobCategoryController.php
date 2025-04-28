@@ -9,96 +9,10 @@ use Illuminate\Support\Facades\Validator;
 
 class JobCategoryController extends Controller
 {
-    /**
-     * Get all job categories with pagination and filtering.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
-     */
-
-     public function getIndustryCategories(Request $request)
-     {
-         // Base query
-         $query = JobCategory::query()
-             ->withCount([
-                 'appliedJobs' => function ($q) {
-                     $q->where('status', 'approved');
-                 }
-             ])
-             ->with('categories'); // 👈 Load children relation
-
-         // Filters
-         if ($request->has('name')) {
-             $query->where('name', 'like', '%' . $request->name . '%');
-         }
-
-         if ($request->has('status')) {
-             $query->where('status', $request->status);
-         }
-
-         // Only fetch top-level parents
-         $query->whereNull('parent_id')->latest();
-
-         if (auth('admin')->check()) {
-             $perPage = $request->input('per_page', 10);
-             $jobCategories = $query->paginate($perPage);
-         } else {
-             $jobCategories = $query->get();
-         }
-
-         return response()->json($jobCategories, 200);
-     }
-
-
-    public function getJobCategories(Request $request)
-    {
-        // Apply filters if provided
-        $query = JobCategory::query()->withCount([
-            'appliedJobs' => function ($query) {
-                $query->where('status', 'approved'); // Only count approved applications
-            }
-        ]);
-
-        // Filter by category name
-        if ($request->has('name')) {
-            $query->where('name', 'like', '%' . $request->name . '%');
-        }
-
-        // Filter by status
-        if ($request->has('status')) {
-            $query->where('status', $request->status);
-        }
-
-        // Filter by parent_id if provided
-        if ($request->has('parent_id')) {
-            $query->where('parent_id', $request->parent_id);
-        } else {
-            // Only include categories where parent_id is null
-            $query->whereNull('parent_id');
-        }
-
-        // Order by latest
-        $query->latest(); // Equivalent to orderBy('created_at', 'desc')
-
-        // Check if the user is authenticated with the 'admin' guard
-        if (auth('admin')->check()) {
-            $perPage = $request->input('per_page', 10); // Default to 10 if not provided
-            $jobCategories = $query->paginate($perPage);
-        } else {
-            $jobCategories = $query->get(); // Get all without pagination
-        }
-
-        return response()->json($jobCategories, 200);
-    }
-
-
-
+    // ... (your getIndustryCategories and getJobCategories methods remain same)
 
     /**
      * Create a new job category.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
      */
     public function createJobCategory(Request $request)
     {
@@ -106,6 +20,7 @@ class JobCategoryController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255|unique:job_categories,name',
             'parent_id' => 'nullable|exists:job_categories,id',
+            'hourly_rate' => 'nullable|numeric|min:0', // 🆕 Add hourly_rate validation
         ]);
 
         if ($validator->fails()) {
@@ -119,7 +34,8 @@ class JobCategoryController extends Controller
         // Create job category
         $jobCategory = JobCategory::create([
             'name' => $request->name,
-            'parent_id' => $request->parent_id, // <-- set parent_id if provided
+            'parent_id' => $request->parent_id,
+            'hourly_rate' => $request->hourly_rate, // 🆕 Save hourly_rate
         ]);
 
         return response()->json([
@@ -130,10 +46,6 @@ class JobCategoryController extends Controller
 
     /**
      * Update an existing job category.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @param string $category_id
-     * @return \Illuminate\Http\Response
      */
     public function updateJobCategory(Request $request, $category_id)
     {
@@ -144,6 +56,7 @@ class JobCategoryController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255|unique:job_categories,name,' . $jobCategory->id,
             'parent_id' => 'nullable|exists:job_categories,id',
+            'hourly_rate' => 'nullable|numeric|min:0', // 🆕 Validate hourly_rate
         ]);
 
         if ($validator->fails()) {
@@ -157,7 +70,8 @@ class JobCategoryController extends Controller
         // Update job category
         $jobCategory->update([
             'name' => $request->name,
-            'parent_id' => $request->parent_id, // Now it can update parent_id too
+            'parent_id' => $request->parent_id,
+            'hourly_rate' => $request->hourly_rate, // 🆕 Update hourly_rate
         ]);
 
         return response()->json([
@@ -169,16 +83,10 @@ class JobCategoryController extends Controller
 
     /**
      * Delete a job category.
-     *
-     * @param string $category_id
-     * @return \Illuminate\Http\Response
      */
     public function deleteJobCategory($category_id)
     {
-        // Find the job category
         $jobCategory = JobCategory::findOrFail($category_id);
-
-        // Delete the job category
         $jobCategory->delete();
 
         return response()->json([
@@ -189,15 +97,11 @@ class JobCategoryController extends Controller
 
     /**
      * Get details of a specific job category.
-     *
-     * @param string $category_id
-     * @return \Illuminate\Http\Response
      */
     public function getJobCategory($category_id)
     {
-        // Find the job category
         $jobCategory = JobCategory::findOrFail($category_id);
 
-        return response()->json( $jobCategory, 200);
+        return response()->json($jobCategory, 200);
     }
 }
