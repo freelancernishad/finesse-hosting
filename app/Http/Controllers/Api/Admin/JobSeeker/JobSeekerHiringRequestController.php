@@ -34,8 +34,6 @@ class JobSeekerHiringRequestController extends Controller
         // Apply status filter if provided
         if (!empty($status)) {
             $query->where('status', $status);
-        } else {
-            $query->whereNotIn('status', ['pending', 'completed']);
         }
 
         // 👇 Check Guard and Apply Filters
