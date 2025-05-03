@@ -36,6 +36,12 @@ class JobSeekerHiringRequestController extends Controller
             $query->where('status', $status);
         }
 
+        // if (!empty($status)) {
+        //     $query->where('status', $status);
+        // } else {
+        //     $query->whereNotIn('status', ['pending', 'completed']);
+        // }
+
         // 👇 Check Guard and Apply Filters
         if (auth()->guard('admin')->check()) {
             // Admin: can see all, or filter by user_id
