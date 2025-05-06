@@ -184,71 +184,48 @@ class JobSeekerHiringRequestController extends Controller
 {
     // Validate request
     $request->validate([
-        'hiring_request_id' => 'nullable|exists:hiring_requests,id', // Nullable to allow missing hiring_request_id
-        'per_page' => 'nullable|integer|min:1', // Validate per_page to ensure it's a positive integer
+        'hiring_request_id' => 'nullable|exists:hiring_requests,id',
+        'per_page' => 'nullable|integer|min:1',
     ]);
 
-    // Default per_page to 10 if not provided
     $perPage = $request->input('per_page', 10);
-
-    // Initialize the query for job seekers
     $query = JobSeeker::query();
 
-    // If hiring_request_id is provided, filter based on it
-    if ($request->has('hiring_request_id')) {
-        // Get the HiringRequest
+    if ($request->filled('hiring_request_id')) {
         $HiringRequest = HiringRequest::findOrFail($request->hiring_request_id);
 
-        // First decode the JSON string if it's still a string
-        $categories = is_string($HiringRequest->categories)
-            ? json_decode($HiringRequest->categories, true)
-            : $HiringRequest->categories;
+        // Decode selected_categories if it's a JSON string
+        $selectedCategories = is_string($HiringRequest->selected_categories)
+            ? json_decode($HiringRequest->selected_categories, true)
+            : $HiringRequest->selected_categories;
 
-        // Now extract the names
-        $requestedCategoryNames = array_map(function($category) {
-            // Handle both array and object formats
-            if (is_array($category)) {
-                return $category['name'];
-            }
-            return is_object($category) ? $category->name : $category;
-        }, (array)$categories);
+        // Extract category names from selected_categories
+        $requestedCategoryNames = collect($selectedCategories)->pluck('name')->toArray();
 
-
-
-        // Get job seekers assigned to active HiringRequests
-        $assignedJobSeekerIds = \DB::table('job_seeker_request_quote')
-            ->join('hiring_requests', 'job_seeker_request_quote.request_quote_id', '=', 'hiring_requests.id')
-            ->where('hiring_requests.status', '!=', 'completed') // Exclude completed ones
+        // Get job seekers already assigned to active (not completed) HiringRequests
+        $assignedJobSeekerIds = \DB::table('hiring_request_job_seeker')
+            ->join('hiring_requests', 'hiring_request_job_seeker.hiring_request_id', '=', 'hiring_requests.id')
+            ->where('hiring_requests.status', '!=', 'completed')
             ->pluck('job_seeker_id')
             ->toArray();
-        Log::info('Assigned job seeker IDs: ' . implode(', ', $assignedJobSeekerIds));
 
-        // If no job seekers are assigned, consider the array empty and return all unassigned job seekers
-        if (empty($assignedJobSeekerIds)) {
-            $assignedJobSeekerIds = [0]; // Ensures no job seekers are excluded
-        }
-
-        // Filter the unassigned job seekers who have at least one matching applied job category
-        $query->whereNotIn('id', $assignedJobSeekerIds)
-            ->whereHas('appliedJobs', function ($query) use ($requestedCategoryNames) {
-                $query->whereIn('category', $requestedCategoryNames);
+        // Filter job seekers who are not assigned and have matching applied job categories
+        $query->whereNotIn('id', $assignedJobSeekerIds ?: [0])
+            ->whereHas('appliedJobs', function ($q) use ($requestedCategoryNames) {
+                $q->whereIn('category', $requestedCategoryNames);
             });
     } else {
-        // If no request_quote_id is provided, return job seekers who have matching categories
-        // Job seekers who have applied jobs in matching categories
-        $query->whereHas('appliedJobs', function ($query) {
-            // Apply your own logic here if necessary, for example, filtering by category
-            // For now, we'll match all categories by default
-            $query->whereNotNull('category');
+        // If no hiring_request_id is provided, return job seekers with at least one applied job category
+        $query->whereHas('appliedJobs', function ($q) {
+            $q->whereNotNull('category');
         });
     }
 
-    // Get the filtered/unfiltered job seekers based on the query conditions, with pagination
     $availableJobSeekers = $query->paginate($perPage);
 
-    // Return the response with pagination data
     return response()->json($availableJobSeekers);
 }
+
 
 
 
