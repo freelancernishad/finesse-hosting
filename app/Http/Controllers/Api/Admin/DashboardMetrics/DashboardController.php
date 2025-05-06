@@ -97,8 +97,8 @@ $topCategories = JobCategory::select([
 });
 
         // Get job seekers assigned to active HiringRequests (status != 'completed')
-        $assignedJobSeekerIds = \DB::table('job_seeker_request_quote')
-            ->join('hiring_requests', 'job_seeker_request_quote.request_quote_id', '=', 'hiring_requests.id')
+        $assignedJobSeekerIds = \DB::table('hiring_request_job_seeker')
+            ->join('hiring_requests', 'hiring_request_job_seeker.hiring_request_id', '=', 'hiring_requests.id')
             ->where('hiring_requests.status', '!=', 'completed')
             ->pluck('job_seeker_id')
             ->toArray();

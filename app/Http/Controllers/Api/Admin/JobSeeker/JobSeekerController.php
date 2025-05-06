@@ -30,14 +30,14 @@ class JobSeekerController extends Controller
          // Retrieve paginated job seekers with assigned HiringRequests only
          $jobSeekers = JobSeeker::with(['HiringRequests' => function ($query) {
              $query->where('status', 'assigned'); // Only fetch assigned quotes
-         }])->paginate($perPage);
+         },'user'])->paginate($perPage);
 
          // Transform response to include assigned quote details
-         $jobSeekers->getCollection()->transform(function ($jobSeeker) {
+         $jobSeekers->setCollection(collect($jobSeekers->items())->transform(function ($jobSeeker) {
              return [
                  'id' => $jobSeeker->id,
-                 'name' => $jobSeeker->name,
-                 'email' => $jobSeeker->email,
+                 'name' => optional($jobSeeker->user)->name, // Use optional() to handle null user
+                 'email' => optional($jobSeeker->user)->email,
                  'phone_number' => $jobSeeker->phone_number,
                  'location' => $jobSeeker->location,
                  'join_date' => $jobSeeker->join_date,
@@ -58,7 +58,7 @@ class JobSeekerController extends Controller
 
                  }),
              ];
-         });
+         }));
 
          return response()->json($jobSeekers, 200);
      }

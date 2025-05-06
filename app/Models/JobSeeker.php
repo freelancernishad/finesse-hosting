@@ -29,7 +29,18 @@ class JobSeeker extends Authenticatable
         'total_reviews',
         'approved_job_roles',
         'last_review',
+        'name',
+        'email', // <-- Add this
     ];
+    public function getNameAttribute()
+    {
+        return $this->user->name ?? null;
+    }
+
+    public function getEmailAttribute()
+    {
+        return $this->user->email ?? null;
+    }
 
 
     public function user()
@@ -123,7 +134,7 @@ class JobSeeker extends Authenticatable
 
     public function HiringRequests()
     {
-        return $this->belongsToMany(HiringRequest::class, 'job_seeker_request_quote', 'job_seeker_id', 'request_quote_id')
+        return $this->belongsToMany(HiringRequest::class, 'hiring_request_job_seeker', 'job_seeker_id', 'hiring_request_id')
         ->withPivot('hourly_rate', 'total_hours', 'total_amount')
         ->withTimestamps();
     }
