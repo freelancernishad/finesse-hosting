@@ -181,50 +181,66 @@ class JobSeekerHiringRequestController extends Controller
 
 
     public function getAvailableJobSeekers(Request $request)
-{
-    // Validate request
-    $request->validate([
-        'hiring_request_id' => 'nullable|exists:hiring_requests,id',
-        'per_page' => 'nullable|integer|min:1',
-    ]);
+    {
+        $request->validate([
+            'hiring_request_id' => 'nullable|exists:hiring_requests,id',
+            'per_page' => 'nullable|integer|min:1',
+        ]);
 
-    $perPage = $request->input('per_page', 10);
-    $query = JobSeeker::query();
+        $perPage = $request->input('per_page', 10);
 
-    if ($request->filled('hiring_request_id')) {
-        $HiringRequest = HiringRequest::findOrFail($request->hiring_request_id);
+        // Eager load user
+        $query = JobSeeker::with('user');
 
-        // Decode selected_categories if it's a JSON string
-        $selectedCategories = is_string($HiringRequest->selected_categories)
-            ? json_decode($HiringRequest->selected_categories, true)
-            : $HiringRequest->selected_categories;
+        if ($request->filled('hiring_request_id')) {
+            $HiringRequest = HiringRequest::findOrFail($request->hiring_request_id);
 
-        // Extract category names from selected_categories
-        $requestedCategoryNames = collect($selectedCategories)->pluck('name')->toArray();
+            $selectedCategories = is_string($HiringRequest->selected_categories)
+                ? json_decode($HiringRequest->selected_categories, true)
+                : $HiringRequest->selected_categories;
 
-        // Get job seekers already assigned to active (not completed) HiringRequests
-        $assignedJobSeekerIds = \DB::table('hiring_request_job_seeker')
-            ->join('hiring_requests', 'hiring_request_job_seeker.hiring_request_id', '=', 'hiring_requests.id')
-            ->where('hiring_requests.status', '!=', 'completed')
-            ->pluck('job_seeker_id')
-            ->toArray();
+            $requestedCategoryNames = collect($selectedCategories)->pluck('name')->toArray();
 
-        // Filter job seekers who are not assigned and have matching applied job categories
-        $query->whereNotIn('id', $assignedJobSeekerIds ?: [0])
-            ->whereHas('appliedJobs', function ($q) use ($requestedCategoryNames) {
-                $q->whereIn('category', $requestedCategoryNames);
+            $assignedJobSeekerIds = \DB::table('hiring_request_job_seeker')
+                ->join('hiring_requests', 'hiring_request_job_seeker.hiring_request_id', '=', 'hiring_requests.id')
+                ->where('hiring_requests.status', '!=', 'completed')
+                ->pluck('job_seeker_id')
+                ->toArray();
+
+            $query->whereNotIn('id', $assignedJobSeekerIds ?: [0])
+                ->whereHas('appliedJobs', function ($q) use ($requestedCategoryNames) {
+                    $q->whereIn('category', $requestedCategoryNames);
+                });
+        } else {
+            $query->whereHas('appliedJobs', function ($q) {
+                $q->whereNotNull('category');
             });
-    } else {
-        // If no hiring_request_id is provided, return job seekers with at least one applied job category
-        $query->whereHas('appliedJobs', function ($q) {
-            $q->whereNotNull('category');
+        }
+        $availableJobSeekers = $query->paginate($perPage);
+
+        // Transform each JobSeeker to include all attributes (including appends)
+        $availableJobSeekers->getCollection()->transform(function ($jobSeekerModel) {
+            $original = $jobSeekerModel->toArray(); // includes appends
+            $insertAfterKey = 'id';
+
+            $result = [];
+            foreach ($original as $key => $value) {
+                $result[$key] = $value;
+
+                if ($key === $insertAfterKey) {
+                    $result['name'] = $jobSeekerModel->user->name ?? null;
+                    $result['email'] = $jobSeekerModel->user->email ?? null;
+                }
+            }
+
+            return $result;
         });
+        
+
+
+        return response()->json($availableJobSeekers);
     }
 
-    $availableJobSeekers = $query->paginate($perPage);
-
-    return response()->json($availableJobSeekers);
-}
 
 
 
