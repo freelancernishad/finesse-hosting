@@ -78,9 +78,13 @@ class HiringRequest extends Model
 
     public function jobSeekers()
     {
-        return $this->belongsToMany(JobSeeker::class, 'job_seeker_request_quote', 'request_quote_id', 'job_seeker_id')
-                    ->withPivot('salary');  // Include the salary field
+        return $this->belongsToMany(JobSeeker::class, 'hiring_request_job_seeker', 'hiring_request_id', 'job_seeker_id')
+        ->withPivot('hourly_rate', 'total_hours', 'total_amount')
+        ->withTimestamps();
     }
+
+
+
 
     public function review()
     {

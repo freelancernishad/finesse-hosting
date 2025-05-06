@@ -27,7 +27,7 @@ class JobSeekerHiringRequestController extends Controller
             'jobSeekers' => function ($query) {
                 $query->select('job_seekers.id', 'users.name as job_seeker_name', 'job_seekers.member_id')
                       ->join('users', 'users.id', '=', 'job_seekers.user_id')
-                      ->withPivot('salary');
+                      ->withPivot('hourly_rate', 'total_hours', 'total_amount');
             }
         ]);
 
@@ -103,7 +103,9 @@ class JobSeekerHiringRequestController extends Controller
         $validator = Validator::make($request->all(), [
             'job_seekers' => 'required|array',
             'job_seekers.*.id' => 'exists:job_seekers,id',
-            'job_seekers.*.salary' => 'required|numeric|min:0'
+            'job_seekers.*.hourly_rate' => 'required|numeric|min:0',
+            'job_seekers.*.total_hours' => 'required|integer|min:0',
+            'job_seekers.*.total_amount' => 'required|numeric|min:0',
         ]);
 
         if ($validator->fails()) {
@@ -119,18 +121,23 @@ class JobSeekerHiringRequestController extends Controller
         // Prepare data for syncing
         $jobSeekerData = [];
         foreach ($request->job_seekers as $jobSeeker) {
-            $jobSeekerData[$jobSeeker['id']] = ['salary' => $jobSeeker['salary']];
+            $jobSeekerData[$jobSeeker['id']] = [
+                'hourly_rate' => $jobSeeker['hourly_rate'],
+                'total_hours' => $jobSeeker['total_hours'],
+                'total_amount' => $jobSeeker['total_amount'],
+            ];
         }
 
-        // Sync job seekers with salaries
+        // Sync job seekers with pivot data
         $HiringRequest->jobSeekers()->sync($jobSeekerData);
 
-                // Update the status of the HiringRequest
-                $HiringRequest->status = 'assigned';
-                $HiringRequest->save();
+        // Update the status of the HiringRequest
+        $HiringRequest->status = 'assigned';
+        $HiringRequest->save();
 
         return response()->json(['message' => 'JobSeekers assigned successfully!', 'request_quote' => $HiringRequest]);
     }
+
 
     // Update status and assign JobSeekers if status is 'assigned'
     public function updateStatus(Request $request, $id)

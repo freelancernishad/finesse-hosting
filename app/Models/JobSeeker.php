@@ -124,7 +124,10 @@ class JobSeeker extends Authenticatable
     public function HiringRequests()
     {
         return $this->belongsToMany(HiringRequest::class, 'job_seeker_request_quote', 'job_seeker_id', 'request_quote_id')
-                    ->withPivot('salary');  // Include the salary field
+        ->withPivot('hourly_rate', 'total_hours', 'total_amount')
+        ->withTimestamps();
     }
+
+
 
 }
