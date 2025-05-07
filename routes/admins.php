@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\AuthenticateAdmin;
 use App\Http\Controllers\Api\Auth\Admin\AdminAuthController;
+use App\Http\Controllers\Api\Admin\Employer\EmployerController;
 use App\Http\Controllers\Api\Admin\JobSeeker\JobSeekerController;
 use App\Http\Controllers\Api\Admin\JobCategory\JobCategoryController;
 use App\Http\Controllers\Api\Admin\JobSeeker\JobApplicationController;
@@ -34,6 +35,8 @@ Route::prefix('admin')->group(function () {
 
 
 
+
+
         Route::prefix('/job-seeker')->group(function () {
             Route::get('/', [JobSeekerController::class, 'index']); // List all JobSeekers
             Route::post('/', [JobSeekerController::class, 'store']); // Create a new JobSeeker
@@ -42,6 +45,18 @@ Route::prefix('admin')->group(function () {
             Route::delete('{id}', [JobSeekerController::class, 'destroy']); // Delete a JobSeeker
             Route::get('/request-quote/{HiringRequestId}/job-seekers', [JobSeekerController::class, 'getJobSeekersByHiringRequest']); // Get JobSeekers by HiringRequest
         });
+
+
+
+        Route::prefix('/employers')->group(function () {
+            Route::get('/', [EmployerController::class, 'index']);
+            Route::post('/', [EmployerController::class, 'store']);
+            Route::get('/{id}', [EmployerController::class, 'show']);
+            Route::post('/{id}', [EmployerController::class, 'update']);
+            Route::delete('/{id}', [EmployerController::class, 'destroy']);
+        });
+
+
 
 
 

@@ -27,6 +27,21 @@ class Employer extends Model
         'hired_before',
     ];
 
+
+    protected $appends = [
+        'name',
+        'email', // <-- Add this
+    ];
+    public function getNameAttribute()
+    {
+        return $this->user->name ?? null;
+    }
+
+    public function getEmailAttribute()
+    {
+        return $this->user->email ?? null;
+    }
+
     // Define the inverse relationship with User
     public function user()
     {
