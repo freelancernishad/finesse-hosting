@@ -123,7 +123,7 @@ class EmployerController extends Controller
         }
 
         return response()->json([
-            'message' => 'Employer and user profile updated successfully.',
+            'message' => 'Employer profile updated successfully.',
             'employer' => $employer->load('user')
         ]);
     }
