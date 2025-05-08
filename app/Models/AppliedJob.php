@@ -16,6 +16,13 @@ class AppliedJob extends Model
         'status', 'review_comments', 'admin_id', 'unique_job_apply_id', 'job_category_id'
     ];
 
+
+    protected $hidden = [
+        'unique_job_apply_id',
+
+    ];
+
+
     // Automatically generate a unique job apply ID on creation
     protected static function booted()
     {
