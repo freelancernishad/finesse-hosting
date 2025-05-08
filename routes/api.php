@@ -68,7 +68,7 @@ Route::prefix('global/')->group(function () {
 
     Route::get('job-categories', [JobCategoryController::class, 'getJobCategories']);
     Route::get('industries', [JobCategoryController::class, 'getJobCategories']);
-
+    Route::get('get/all/industry-and-category', [JobCategoryController::class, 'getIndustryCategories']);
 
     Route::get('/request-quotes/{HiringRequestId}/job-seekers', [HiringRequestController::class, 'getJobSeekersByHiringRequest']);
 
