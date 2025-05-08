@@ -18,86 +18,88 @@ class JobApplicationController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function applyForJob(Request $request)
-    {
-        // Authenticate user with 'api' guard
-        $user = Auth::guard('api')->user();
+{
+    // Authenticate user with 'api' guard
+    $user = Auth::guard('api')->user();
 
-        if (!$user) {
-            return response()->json(['status' => false, 'message' => 'Unauthorized'], 401);
-        }
-
-        // Check if the user's active profile is JobSeeker
-        if ($user->active_profile !== 'JobSeeker') {
-            return response()->json([
-                'status' => false,
-                'message' => 'You must have an active JobSeeker profile to access this.',
-            ], 403);
-        }
-
-        // Retrieve JobSeeker profile
-        $jobSeeker = $user->jobSeeker;
-
-        if (!$jobSeeker) {
-            return response()->json(['status' => false, 'message' => 'JobSeeker profile not found'], 404);
-        }
-
-        // Validate only the fields that are not coming from the user
-        $validator = Validator::make($request->all(), [
-            'interest_file' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
-            'area' => 'required|string|max:255',
-            'job_category_id' => 'required|exists:job_categories,id',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Validation error',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        // Check if the job seeker already has an application in this category
-        $existingApplication = AppliedJob::where('job_seeker_id', $jobSeeker->id)
-            ->where('job_category_id', $request->job_category_id)
-            ->exists();
-
-        if ($existingApplication) {
-            return response()->json([
-                'status' => false,
-                'message' => 'You have already applied for this job category.',
-            ], 403);
-        }
-
-        // Retrieve the JobCategory name
-        $jobCategory = JobCategory::find($request->job_category_id);
-
-        // Store the applied job data using data from the user
-        $Waiting_list = AppliedJob::create([
-            'name' => $user->name,
-            'phone' => $user->jobSeeker->phone ?? null,
-            'email' => $user->email,
-            'date_of_birth' => $user->jobSeeker->date_of_birth ?? null,
-            'country' => $user->country,
-            'city' => $user->city,
-            'post_code' => $user->zip_code,
-            'address' => $user->street_address,
-            'area' => $request->area,
-            'category' => $jobCategory->name,
-            'job_category_id' => $jobCategory->id,
-            'job_seeker_id' => $jobSeeker->id,
-        ]);
-
-        // Handle the interest file upload
-        if ($request->hasFile('interest_file')) {
-            $Waiting_list->saveInterestFile($request->file('interest_file'));
-        }
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Waiting list submitted successfully!',
-            'Waiting_list' => $Waiting_list,
-        ], 200);
+    if (!$user) {
+        return response()->json(['status' => false, 'message' => 'Unauthorized'], 401);
     }
+
+    // Check if the user's active profile is JobSeeker
+    if ($user->active_profile !== 'JobSeeker') {
+        return response()->json([
+            'status' => false,
+            'message' => 'You must have an active JobSeeker profile to access this.',
+        ], 403);
+    }
+
+    // Retrieve JobSeeker profile
+    $jobSeeker = $user->jobSeeker;
+
+    if (!$jobSeeker) {
+        return response()->json(['status' => false, 'message' => 'JobSeeker profile not found'], 404);
+    }
+
+    // Validate only the fields that are not coming from the user
+    $validator = Validator::make($request->all(), [
+        'interest_file' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
+        'area' => 'required|array|min:1',
+        'area.*' => 'string|max:255',
+        'job_category_id' => 'required|exists:job_categories,id',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Validation error',
+            'errors' => $validator->errors(),
+        ], 422);
+    }
+
+    // Check if the job seeker already has an application in this category
+    $existingApplication = AppliedJob::where('job_seeker_id', $jobSeeker->id)
+        ->where('job_category_id', $request->job_category_id)
+        ->exists();
+
+    if ($existingApplication) {
+        return response()->json([
+            'status' => false,
+            'message' => 'You have already applied for this job category.',
+        ], 403);
+    }
+
+    // Retrieve the JobCategory name
+    $jobCategory = JobCategory::find($request->job_category_id);
+
+    // Store the applied job data using data from the user
+    $Waiting_list = AppliedJob::create([
+        'name' => $user->name,
+        'phone' => $user->jobSeeker->phone ?? null,
+        'email' => $user->email,
+        'date_of_birth' => $user->jobSeeker->date_of_birth ?? null,
+        'country' => $user->country,
+        'city' => $user->city,
+        'post_code' => $user->zip_code,
+        'address' => $user->street_address,
+        'area' => json_encode($request->area), // storing area as JSON
+        'category' => $jobCategory->name,
+        'job_category_id' => $jobCategory->id,
+        'job_seeker_id' => $jobSeeker->id,
+    ]);
+
+    // Handle the interest file upload
+    if ($request->hasFile('interest_file')) {
+        $Waiting_list->saveInterestFile($request->file('interest_file'));
+    }
+
+    return response()->json([
+        'status' => true,
+        'message' => 'Waiting list submitted successfully!',
+        'Waiting_list' => $Waiting_list,
+    ], 200);
+}
+
 
 
 

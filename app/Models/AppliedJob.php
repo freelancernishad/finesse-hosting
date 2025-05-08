@@ -16,12 +16,20 @@ class AppliedJob extends Model
         'status', 'review_comments', 'admin_id', 'unique_job_apply_id', 'job_category_id'
     ];
 
-
     protected $hidden = [
         'unique_job_apply_id',
-
     ];
 
+    // Ensure 'area' is cast to array when accessed
+    protected $casts = [
+        'area' => 'array',
+    ];
+
+    // OR manually decode 'area' to ensure it's always an array (fallback to empty array)
+    public function getAreaAttribute($value)
+    {
+        return json_decode($value, true) ?? [];
+    }
 
     // Automatically generate a unique job apply ID on creation
     protected static function booted()
@@ -43,13 +51,11 @@ class AppliedJob extends Model
         return $this->belongsTo(Admin::class, 'admin_id');
     }
 
-
     // Relationship with JobCategory
     public function jobCategory()
     {
         return $this->belongsTo(JobCategory::class, 'job_category_id');
     }
-
 
     /**
      * Save the interest file to a specific folder in S3.

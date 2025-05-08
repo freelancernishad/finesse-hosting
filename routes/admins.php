@@ -63,7 +63,7 @@ Route::prefix('admin')->group(function () {
 
 
 
-        Route::prefix('job-seeker/job-application')->group(function () {
+        Route::prefix('job-seeker/waiting-list')->group(function () {
             // Route to get all job applications
             Route::get('/list', [JobApplicationController::class, 'getJobApplications']);
 
