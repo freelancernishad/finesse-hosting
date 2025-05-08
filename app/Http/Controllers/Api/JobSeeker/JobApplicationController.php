@@ -82,7 +82,7 @@ class JobApplicationController extends Controller
         'city' => $user->city,
         'post_code' => $user->zip_code,
         'address' => $user->street_address,
-        'area' => json_encode($request->area), // storing area as JSON
+        'area' => $request->area, // storing area as JSON
         'category' => $jobCategory->name,
         'job_category_id' => $jobCategory->id,
         'job_seeker_id' => $jobSeeker->id,

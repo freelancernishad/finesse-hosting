@@ -25,11 +25,6 @@ class AppliedJob extends Model
         'area' => 'array',
     ];
 
-    // OR manually decode 'area' to ensure it's always an array (fallback to empty array)
-    public function getAreaAttribute($value)
-    {
-        return json_decode($value, true) ?? [];
-    }
 
     // Automatically generate a unique job apply ID on creation
     protected static function booted()
