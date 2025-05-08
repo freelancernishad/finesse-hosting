@@ -90,9 +90,8 @@ class JobSeekerHiringRequestController extends Controller
             return response()->json(['message' => 'HiringRequest not found'], 404);
         }
 
-        // $HiringRequest->categories = json_decode($HiringRequest->categories);
+        return response()->json($HiringRequest->toArray());
 
-        return response()->json($HiringRequest);
     }
 
 
