@@ -86,16 +86,15 @@ class JobSeekerHiringRequestController extends Controller
     {
         $HiringRequest = HiringRequest::with('jobSeekers')->find($id);
 
-
-        $HiringRequest->categories = json_decode($HiringRequest->categories);
-
-
         if (!$HiringRequest) {
             return response()->json(['message' => 'HiringRequest not found'], 404);
         }
 
+        $HiringRequest->categories = json_decode($HiringRequest->categories);
+
         return response()->json($HiringRequest);
     }
+
 
     // Assign JobSeekers to a HiringRequest
     public function assignJobSeekers(Request $request, $id)
@@ -235,7 +234,7 @@ class JobSeekerHiringRequestController extends Controller
 
             return $result;
         });
-        
+
 
 
         return response()->json($availableJobSeekers);
