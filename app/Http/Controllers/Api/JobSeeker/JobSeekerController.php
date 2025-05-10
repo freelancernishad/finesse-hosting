@@ -149,7 +149,7 @@ class JobSeekerController extends Controller
 
         // Validate resume
         $validator = Validator::make($request->all(), [
-            'resume' => 'required|mimes:pdf,doc,docx,jpeg,png,jpg|max:5120',
+            'resume' => 'required|mimes:pdf,doc,docx,jpeg,png,jpg',
         ]);
 
         if ($validator->fails()) {
