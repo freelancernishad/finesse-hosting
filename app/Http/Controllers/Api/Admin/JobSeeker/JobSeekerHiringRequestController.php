@@ -117,7 +117,7 @@ public function show($id)
             'status' => $hiringRequest->status,
             'created_at' => $hiringRequest->created_at,
             'updated_at' => $hiringRequest->updated_at,
-            'user' => [
+            'requested_user' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
