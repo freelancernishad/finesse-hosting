@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\AuthenticateAdmin;
 use App\Http\Controllers\Api\Auth\Admin\AdminAuthController;
+use App\Http\Controllers\Api\Admin\JobPost\PostJobController;
 use App\Http\Controllers\Api\Admin\Employer\EmployerController;
 use App\Http\Controllers\Api\Admin\JobSeeker\JobSeekerController;
 use App\Http\Controllers\Api\Admin\JobCategory\JobCategoryController;
@@ -103,6 +104,29 @@ Route::prefix('admin')->group(function () {
             Route::post('hiring-request/{id}/assign-job-seekers', [JobSeekerHiringRequestController::class, 'assignJobSeekers']);
             Route::put('hiring-request/{id}/update-status', [JobSeekerHiringRequestController::class, 'updateStatus']);
             Route::post('hiring-request/{id}/confirm-request', [JobSeekerHiringRequestController::class, 'confirmQuote']);
+
+
+
+
+
+
+        // List all jobs
+        Route::get('/post-jobs', [PostJobController::class, 'index']);
+
+        // Create a new job
+        Route::post('/post-jobs', [PostJobController::class, 'store']);
+
+        // Show a specific job
+        Route::get('/post-jobs/{postJob}', [PostJobController::class, 'show']);
+
+        // Update a specific job
+        Route::put('/post-jobs/{postJob}', [PostJobController::class, 'update']);
+        Route::patch('/post-jobs/{postJob}', [PostJobController::class, 'update']);
+
+        // Delete a job
+        Route::delete('/post-jobs/{postJob}', [PostJobController::class, 'destroy']);
+
+        Route::patch('/post-jobs/{id}/status', [PostJobController::class, 'updateStatus']);
 
 
 
