@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Admin\JobPost;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\PostJob;
+use Illuminate\Support\Facades\Validator;
 
 class PostJobController extends Controller
 {
@@ -15,10 +16,11 @@ class PostJobController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'hiring_request_id' => 'required|exists:hiring_requests,id',
             'title' => 'required|string|max:255',
-            'category' => 'required|string|max:255',
+            'category' => 'required|array',
+            'category.*' => 'string|max:255',
             'model' => 'nullable|string|max:255',
             'experience' => 'nullable|string|max:255',
             'salary_type' => 'required|string|max:100',
@@ -29,12 +31,18 @@ class PostJobController extends Controller
             'status' => 'in:open,closed,draft',
         ]);
 
-        // Set default status to 'open' if not provided
-        if (!isset($validated['status'])) {
-            $validated['status'] = 'open';
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $postJob = PostJob::create($validated);
+        $data = $validator->validated();
+
+        // Set default status if not provided
+        if (!isset($data['status'])) {
+            $data['status'] = 'open';
+        }
+
+        $postJob = PostJob::create($data);
 
         return response()->json($postJob, 201);
     }
@@ -46,9 +54,10 @@ class PostJobController extends Controller
 
     public function update(Request $request, PostJob $postJob)
     {
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'title' => 'sometimes|required|string|max:255',
-            'category' => 'sometimes|required|string|max:255',
+            'category' => 'sometimes|required|array',
+            'category.*' => 'string|max:255',
             'model' => 'nullable|string|max:255',
             'experience' => 'nullable|string|max:255',
             'salary_type' => 'sometimes|required|string|max:100',
@@ -59,7 +68,11 @@ class PostJobController extends Controller
             'status' => 'in:open,closed,draft',
         ]);
 
-        $postJob->update($validated);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $postJob->update($validator->validated());
 
         return response()->json($postJob);
     }
@@ -71,12 +84,15 @@ class PostJobController extends Controller
         return response()->json(['message' => 'PostJob deleted successfully']);
     }
 
-
     public function updateStatus(Request $request, $id)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'status' => 'required|in:open,closed,draft',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
 
         $postJob = PostJob::findOrFail($id);
         $postJob->status = $request->status;
@@ -87,5 +103,4 @@ class PostJobController extends Controller
             'data' => $postJob
         ]);
     }
-
 }
