@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class HiringRequest extends Model
 {
@@ -111,4 +112,30 @@ class HiringRequest extends Model
         $this->status = 'assigned';
         $this->save();
     }
+
+
+
+    public function matchedJobSeekers()
+    {
+        $selectedCategories = is_string($this->selected_categories)
+            ? json_decode($this->selected_categories, true)
+            : $this->selected_categories;
+
+        $requestedCategoryNames = collect($selectedCategories)->pluck('name')->toArray();
+
+        // Get all assigned job seeker IDs (any hiring request that is not 'completed')
+        $assignedJobSeekerIds = DB::table('hiring_request_job_seeker')
+            ->join('hiring_requests', 'hiring_request_job_seeker.hiring_request_id', '=', 'hiring_requests.id')
+            ->where('hiring_requests.status', '!=', 'completed')
+            ->pluck('job_seeker_id')
+            ->toArray();
+
+        return $this->hasMany(JobSeeker::class, 'id')
+            ->whereNotIn('id', $assignedJobSeekerIds ?: [0])
+            ->whereHas('appliedJobs', function ($q) use ($requestedCategoryNames) {
+                $q->whereIn('category', $requestedCategoryNames);
+            });
+    }
+
+
 }

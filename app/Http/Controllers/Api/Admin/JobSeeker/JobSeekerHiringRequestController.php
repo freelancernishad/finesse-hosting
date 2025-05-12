@@ -54,6 +54,9 @@ class JobSeekerHiringRequestController extends Controller
             $query->where('user_id', $user->id);
         }
 
+
+        $query->withCount(['matchedJobSeekers as matched_job_seekers_count']);
+
         $HiringRequests = $query->paginate($perPage); // Apply pagination
 
         return response()->json($HiringRequests);
