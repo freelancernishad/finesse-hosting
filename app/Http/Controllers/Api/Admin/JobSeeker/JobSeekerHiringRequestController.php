@@ -85,17 +85,84 @@ class JobSeekerHiringRequestController extends Controller
 
 
     // Show a specific HiringRequest with JobSeekers
-    public function show($id)
-    {
-        $HiringRequest = HiringRequest::with('jobSeekers')->find($id);
+public function show($id)
+{
+    $hiringRequest = HiringRequest::with('jobSeekers.user', 'user.employer')->find($id);
 
-        if (!$HiringRequest) {
-            return response()->json(['message' => 'HiringRequest not found'], 404);
-        }
-
-        return response()->json($HiringRequest->toArray());
-
+    if (!$hiringRequest) {
+        return response()->json(['message' => 'Hiring request not found'], 404);
     }
+
+    $user = $hiringRequest->user;
+    $employer = $user->employer ?? null;
+
+    return response()->json([
+            'id' => $hiringRequest->id,
+            'selected_industry' => $hiringRequest->selected_industry,
+            'selected_categories' => $hiringRequest->selected_categories,
+            'job_descriptions' => $hiringRequest->job_descriptions,
+            'is_use_my_current_company_location' => $hiringRequest->is_use_my_current_company_location,
+            'job_location' => $hiringRequest->job_location,
+            'years_of_experience' => $hiringRequest->years_of_experience,
+            'reason_for_hire' => $hiringRequest->reason_for_hire,
+            'note' => $hiringRequest->note,
+            'hire_for_my_current_company' => $hiringRequest->hire_for_my_current_company,
+            'company_info' => $hiringRequest->company_info,
+            'expected_joining_date' => $hiringRequest->expected_joining_date,
+            'min_yearly_salary' => $hiringRequest->min_yearly_salary,
+            'mix_yearly_salary' => $hiringRequest->mix_yearly_salary,
+            'total_hours' => $hiringRequest->total_hours,
+            'start_date' => $hiringRequest->start_date,
+            'end_date' => $hiringRequest->end_date,
+            'status' => $hiringRequest->status,
+            'created_at' => $hiringRequest->created_at,
+            'updated_at' => $hiringRequest->updated_at,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'active_profile' => $user->active_profile,
+                'profile_picture' => $user->profile_picture,
+                'country' => $user->country,
+                'state' => $user->state,
+                'city' => $user->city,
+                'region' => $user->region,
+                'street_address' => $user->street_address,
+                'zip_code' => $user->zip_code,
+                'full_address' => $user->full_address,
+                'profile' => $employer, // You may format this as needed too
+            ],
+            'job_seekers' => $hiringRequest->jobSeekers->map(function ($js) {
+                return [
+                    'id' => $js->id,
+                    'name' => $js->user->name ?? null,
+                    'email' => $js->user->email ?? null,
+                    'member_id' => $js->member_id,
+                    'average_review_rating' => $js->average_review_rating,
+                    'review_summary' => $js->review_summary,
+                    'approved_job_roles' => $js->approved_job_roles,
+                    'pivot' => $js->pivot,
+                    'applied_jobs' => $js->applied_jobs,
+                    'user' => [
+                        'id' => $js->user->id ?? null,
+                        'name' => $js->user->name ?? null,
+                        'email' => $js->user->email ?? null,
+                        'active_profile' => $js->user->active_profile ?? null,
+                        'profile_picture' => $js->user->profile_picture ?? null,
+                        'country' => $js->user->country ?? null,
+                        'state' => $js->user->state ?? null,
+                        'city' => $js->user->city ?? null,
+                        'region' => $js->user->region ?? null,
+                        'street_address' => $js->user->street_address ?? null,
+                        'zip_code' => $js->user->zip_code ?? null,
+                        'full_address' => $js->user->full_address ?? null,
+                    ]
+                ];
+            }),
+
+    ]);
+}
+
 
 
     // Assign JobSeekers to a HiringRequest
