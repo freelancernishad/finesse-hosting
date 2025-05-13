@@ -49,6 +49,7 @@ class PostJobController extends Controller
 
     public function show(PostJob $postJob)
     {
+        $postJob->load('hiringRequest');
         return $postJob;
     }
 
