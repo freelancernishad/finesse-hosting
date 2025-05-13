@@ -38,6 +38,7 @@ Route::prefix('user')->group(function () {
         Route::put('/update-profile', [UserProfileController::class, 'updateProfile']);
         Route::post('/update-profile-picture', [UserProfileController::class, 'updateProfilePicture']);
         Route::post('/update-resume', [JobSeekerController::class, 'updateResume']);
+        Route::get('/download-resume', [JobSeekerController::class, 'downloadResume']);
 
         Route::get('/reviews', [ReviewController::class, 'getMyReviews']);
 

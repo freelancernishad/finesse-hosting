@@ -46,6 +46,7 @@ Route::prefix('admin')->group(function () {
             Route::delete('{id}', [JobSeekerController::class, 'destroy']); // Delete a JobSeeker
             Route::get('/request-quote/{HiringRequestId}/job-seekers', [JobSeekerController::class, 'getJobSeekersByHiringRequest']); // Get JobSeekers by HiringRequest
         });
+         Route::get('/download-resume/{job_seeker_id}', [JobSeekerController::class, 'downloadResume']);
 
 
 
@@ -79,6 +80,7 @@ Route::prefix('admin')->group(function () {
             // Route to delete a job application
             Route::delete('/{jobApplicationId}', [JobApplicationController::class, 'deleteJobApplication']);
         });
+
 
 
 

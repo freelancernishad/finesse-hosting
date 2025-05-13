@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Global\ReviewController;
 use App\Http\Controllers\Api\Server\ServerStatusController;
+use App\Http\Controllers\Api\Global\JobPost\GlobalPostJobController;
 use App\Http\Controllers\Api\User\Package\UserPackageController;
 use App\Http\Controllers\Api\Admin\JobCategory\JobCategoryController;
 use App\Http\Controllers\Api\Global\HiringRequest\HiringRequestController;
@@ -78,6 +79,11 @@ Route::prefix('global/')->group(function () {
     Route::post('request-quote/{HiringRequestId}/add-reviews', [ReviewController::class, 'addReviewsForHiringRequest']);
     Route::post('job-seeker/{jobSeekerId}/add-review', [ReviewController::class, 'addReviewForJobSeeker']);
 
+
+
+
+    Route::get('/jobs', [GlobalPostJobController::class, 'index']);       // List with filters
+    Route::get('/jobs/{id}', [GlobalPostJobController::class, 'show']);   // Single job view
 
 
 
