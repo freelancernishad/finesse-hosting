@@ -193,7 +193,7 @@ public function applyForPostedJob(Request $request)
         'interest_file' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
         'area' => 'required|array|min:1',
         'area.*' => 'string|max:255',
-        'post_job_id' => 'required|exists:post_jobs,id', // Ensure job exists
+        'post_job_id' => 'nullable|exists:post_jobs,id', // Ensure job exists
         'job_category_id' => 'required|exists:job_categories,id', // Ensure job category is valid
 
         // Fields for user and jobSeeker fallback
