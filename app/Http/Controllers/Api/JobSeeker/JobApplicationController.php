@@ -206,7 +206,7 @@ public function applyForPostedJob(Request $request)
 
         // Optional applied job fields
         'describe_yourself' => 'nullable|string',
-        'resume' => 'nullable|mimes:pdf,doc,docx|max:5120',
+        'resume' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png',
         'cover_letter' => 'nullable|string',
         'experience' => 'nullable|string',
         'preferred_contact_method' => 'nullable|in:email,phone',
