@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+
+use Illuminate\Support\Facades\Log;
+use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject, MustVerifyEmail
 {
@@ -77,6 +79,81 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+
+public function getProfileCompletionAttribute(): int
+{
+    $filled = 0;
+    $fields = [];
+
+    // Common user fields
+    $userFields = [
+        'name',
+        'email',
+        'profile_picture',
+        'street_address',
+        'city',
+        'state',
+        'country',
+    ];
+
+    if ($this->active_profile == 'Employer') {
+        $employerFields = [
+            'company_name',
+            'industry',
+            'website',
+            'company_size',
+            'business_location',
+            'years_in_operation',
+            'company_description',
+            'designation',
+            'bio',
+            'preferred_contact_time',
+            'preferred_contact_via',
+            'hired_before'
+        ];
+
+        foreach ($userFields as $field) {
+            if (!empty($this->{$field})) {
+                $filled++;
+            }
+        }
+
+        foreach ($employerFields as $field) {
+            if (!empty($this->employer->{$field})) {
+                $filled++;
+            }
+        }
+
+        $fields = array_merge($userFields, $employerFields);
+
+    } elseif ($this->active_profile == 'JobSeeker') {
+        $jobSeekerFields = [
+            'phone_number',
+            'resume',
+            'location',
+            'post_code',
+            'join_date'
+        ];
+
+        foreach ($userFields as $field) {
+            if (!empty($this->{$field})) {
+                $filled++;
+            }
+        }
+
+        foreach ($jobSeekerFields as $field) {
+            if (!empty($this->jobSeeker->{$field})) {
+                $filled++;
+            }
+        }
+
+        $fields = array_merge($userFields, $jobSeekerFields);
+    }
+
+    return count($fields) ? intval(($filled / count($fields)) * 100) : 0;
+}
+
 
 
     public static function booted()

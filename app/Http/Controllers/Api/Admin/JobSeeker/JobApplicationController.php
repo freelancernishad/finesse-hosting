@@ -18,7 +18,7 @@ class JobApplicationController extends Controller
     public function getJobApplications(Request $request)
     {
         // Start building the query
-        $query = AppliedJob::with('jobSeeker', 'admin');
+        $query = AppliedJob::with('jobSeeker', 'admin')->latest();
 
         // Apply category filter if provided
         if ($request->has('category') && $request->category != '') {
@@ -48,7 +48,7 @@ class JobApplicationController extends Controller
         $jobApplications = $query->paginate($perPage);
 
         // Return paginated job applications
-        return response()->json( $jobApplications, 200);
+        return response()->json($jobApplications, 200);
     }
 
 

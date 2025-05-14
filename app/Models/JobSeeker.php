@@ -32,6 +32,11 @@ class JobSeeker extends Authenticatable
         'name',
         'email', // <-- Add this
     ];
+
+
+
+
+
     public function getNameAttribute()
     {
         return $this->user->name ?? null;

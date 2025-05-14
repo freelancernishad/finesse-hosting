@@ -41,6 +41,7 @@ class UserProfileController extends Controller
                 'street_address' => $user->street_address,
                 'zip_code' => $user->zip_code,
                 'full_address' => $user->full_address,
+                'profile_completion' => $user->profile_completion,
             ],
             'profile' => $profile,
         ]);

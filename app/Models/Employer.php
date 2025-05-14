@@ -31,6 +31,7 @@ class Employer extends Model
     protected $appends = [
         'name',
         'email', // <-- Add this
+
     ];
     public function getNameAttribute()
     {
