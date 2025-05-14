@@ -226,13 +226,14 @@ public function applyForPostedJob(Request $request)
 
     // Prevent duplicate application for same job post
     $alreadyApplied = AppliedJob::where('post_job_id', $postJobId)
+        ->where('job_category_id', $jobCategoryId)
         ->where('job_seeker_id', optional($user->jobSeeker)->id)
         ->exists();
 
     if ($alreadyApplied) {
         return response()->json([
             'status' => false,
-            'message' => 'You have already applied for this job post.',
+            'message' => 'You have already applied for this job post in this category.',
         ], 403);
     }
 
@@ -265,21 +266,17 @@ public function applyForPostedJob(Request $request)
 
     if (!$jobSeeker) {
         $jobSeeker = $user->jobSeeker()->create([
-            'phone' => $request->phone,
-            'date_of_birth' => $request->date_of_birth,
+            'phone_number' => $request->phone
         ]);
     } else {
         $jobSeekerNeedsUpdate = false;
 
-        if (empty($jobSeeker->phone) && $request->filled('phone')) {
-            $jobSeeker->phone = $request->phone;
+        if (empty($jobSeeker->phone_number) && $request->filled('phone')) {
+            $jobSeeker->phone_number = $request->phone;
             $jobSeekerNeedsUpdate = true;
         }
 
-        if (empty($jobSeeker->date_of_birth) && $request->filled('date_of_birth')) {
-            $jobSeeker->date_of_birth = $request->date_of_birth;
-            $jobSeekerNeedsUpdate = true;
-        }
+
 
         if ($jobSeekerNeedsUpdate) {
             $jobSeeker->save();
@@ -289,9 +286,8 @@ public function applyForPostedJob(Request $request)
     // === STEP 3: Create AppliedJob ===
     $appliedJob = AppliedJob::create([
         'name' => $user->name,
-        'phone' => $jobSeeker->phone,
+        'phone' => $jobSeeker->phone_number,
         'email' => $user->email,
-        'date_of_birth' => $jobSeeker->date_of_birth,
         'country' => $user->country,
         'city' => $user->city,
         'post_code' => $user->zip_code,
