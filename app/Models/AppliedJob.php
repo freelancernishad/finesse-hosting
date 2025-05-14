@@ -13,7 +13,9 @@ class AppliedJob extends Model
     protected $fillable = [
         'name', 'phone', 'email', 'date_of_birth', 'country', 'city',
         'post_code', 'address', 'interest_file', 'area', 'category', 'job_seeker_id',
-        'status', 'review_comments', 'admin_id', 'unique_job_apply_id', 'job_category_id'
+        'status', 'review_comments', 'admin_id', 'unique_job_apply_id', 'job_category_id','post_job_id',
+            'describe_yourself', 'resume', 'cover_letter', 'experience',
+    'preferred_contact_method', 'on_call_status'
     ];
 
     protected $hidden = [
@@ -64,5 +66,11 @@ class AppliedJob extends Model
         $this->save();
 
         return $filePath;
+    }
+
+
+    public function postJob()
+    {
+        return $this->belongsTo(PostJob::class, 'post_job_id');
     }
 }

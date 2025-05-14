@@ -42,11 +42,25 @@ Route::prefix('user')->group(function () {
 
         Route::get('/reviews', [ReviewController::class, 'getMyReviews']);
 
-        Route::post('/join-waiting-list', [JobApplicationController::class, 'applyForJob']);
-        Route::post('/job-apply', [JobApplicationController::class, 'applyForJob']);
 
-        Route::get('/waiting-lists', [JobApplicationController::class, 'getJobList']);
-        Route::get('/job-applications', [JobApplicationController::class, 'getJobList']);
+
+        Route::post('/join-waiting-list', [JobApplicationController::class, 'join_waiting_list']);
+        Route::post('/job-apply', [JobApplicationController::class, 'join_waiting_list']);
+
+        Route::get('/waiting-lists', [JobApplicationController::class, 'getWaitingLists']);
+        Route::get('/job-applications', [JobApplicationController::class, 'getWaitingLists']);
+
+
+
+
+
+
+        Route::post('/apply/jobs', [JobApplicationController::class, 'applyForPostedJob']);
+        Route::get('/list/applied-jobs', [JobApplicationController::class, 'getPostedJobApplications']);
+
+
+
+
 
 
         Route::get('hiring-request', [JobSeekerHiringRequestController::class, 'index']);
