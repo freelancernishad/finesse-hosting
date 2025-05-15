@@ -18,50 +18,41 @@ class JobSeekerController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-     public function index(Request $request)
-     {
-         // Validate per_page input, set default to 10 if not provided
-         $request->validate([
-             'per_page' => 'nullable|integer|min:1', // Ensure per_page is an integer and at least 1
-         ]);
+    public function index(Request $request)
+    {
+        // Validate per_page input, set default to 10 if not provided
+        $request->validate([
+           'per_page' => 'nullable|integer|min:1', // Ensure per_page is an integer and at least 1
+        ]);
 
-         $perPage = $request->input('per_page', 10);
+        $perPage = $request->input('per_page', 10);
 
-         // Retrieve paginated job seekers with assigned HiringRequests only
-         $jobSeekers = JobSeeker::with(['HiringRequests' => function ($query) {
-             $query->where('status', 'assigned'); // Only fetch assigned quotes
-         },'user'])->paginate($perPage);
+        // Retrieve paginated job seekers with the latest ones first
+        $jobSeekers = JobSeeker::with(['HiringRequests' => function ($query) {
+           $query->where('status', 'assigned'); // Only fetch assigned quotes
+        }, 'user'])->orderBy('created_at', 'desc')->paginate($perPage);
 
-         // Transform response to include assigned quote details
-         $jobSeekers->setCollection(collect($jobSeekers->items())->transform(function ($jobSeeker) {
-             return [
-                 'id' => $jobSeeker->id,
-                 'name' => optional($jobSeeker->user)->name, // Use optional() to handle null user
-                 'email' => optional($jobSeeker->user)->email,
-                 'phone_number' => $jobSeeker->phone_number,
-                 'location' => $jobSeeker->location,
-                 'join_date' => $jobSeeker->join_date,
-                 'average_review_rating' => $jobSeeker->average_review_rating,
-                 'total_reviews' => $jobSeeker->total_reviews,
+        // Transform response to include assigned quote details
+        $jobSeekers->setCollection(collect($jobSeekers->items())->transform(function ($jobSeeker) {
+           return [
+              'id' => $jobSeeker->id,
+              'name' => optional($jobSeeker->user)->name, // Use optional() to handle null user
+              'email' => optional($jobSeeker->user)->email,
+              'phone_number' => $jobSeeker->phone_number,
+              'location' => $jobSeeker->location,
+              'join_date' => $jobSeeker->join_date,
+              'average_review_rating' => $jobSeeker->average_review_rating,
+              'total_reviews' => $jobSeeker->total_reviews,
 
-                 'is_assigned_quote' => $jobSeeker->HiringRequests->isNotEmpty(), // Check if assigned any quote
-                 'assigned_quotes' => $jobSeeker->HiringRequests->map(function ($quote) {
+              'is_assigned_quote' => $jobSeeker->HiringRequests->isNotEmpty(), // Check if assigned any quote
+              'assigned_quotes' => $jobSeeker->HiringRequests->map(function ($quote) {
+                 return $quote;
+              }),
+           ];
+        }));
 
-
-                    return $quote;
-                    // return [
-                    //      'id' => $quote->id,
-                    //      'name' => $quote->name,
-                    //      'status' => $quote->status, // Include status for clarity
-                    //  ];
-
-
-                 }),
-             ];
-         }));
-
-         return response()->json($jobSeekers, 200);
-     }
+        return response()->json($jobSeekers, 200);
+    }
 
 
 

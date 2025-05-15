@@ -22,6 +22,8 @@ class JobSeekerHiringRequestController extends Controller
         $perPage = $request->input('per_page', 10); // Default to 10 per page
         $status = $request->input('status'); // Get status filter from request
         $userId = $request->input('user_id'); // Admin can filter by user_id
+        $sortBy = $request->input('sort_by', 'created_at'); // Default sort by created_at
+        $sortOrder = $request->input('sort_order', 'desc'); // Default sort order is descending
 
         $query = HiringRequest::with([
             'jobSeekers' => function ($query) {
@@ -36,12 +38,6 @@ class JobSeekerHiringRequestController extends Controller
             $query->where('status', $status);
         }
 
-        // if (!empty($status)) {
-        //     $query->where('status', $status);
-        // } else {
-        //     $query->whereNotIn('status', ['pending', 'completed']);
-        // }
-
         // 👇 Check Guard and Apply Filters
         if (auth()->guard('admin')->check()) {
             // Admin: can see all, or filter by user_id
@@ -54,25 +50,12 @@ class JobSeekerHiringRequestController extends Controller
             $query->where('user_id', $user->id);
         }
 
-
         $query->withCount(['matchedJobSeekers as matched_job_seekers_count']);
 
+        // Apply sorting
+        $query->orderBy($sortBy, $sortOrder);
+
         $HiringRequests = $query->paginate($perPage); // Apply pagination
-
-        return response()->json($HiringRequests);
-
-        // Hide attributes from jobSeekers
-        $HiringRequests->getCollection()->each(function ($HiringRequest) {
-            $HiringRequest->jobSeekers->each(function ($jobSeeker) {
-                $jobSeeker->makeHidden([
-                    'average_review_rating',
-                    'review_summary',
-                    'total_reviews',
-                    'approved_job_roles',
-                    'last_review'
-                ]);
-            });
-        });
 
         return response()->json($HiringRequests);
     }

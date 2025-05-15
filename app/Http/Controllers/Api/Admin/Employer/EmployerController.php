@@ -17,7 +17,7 @@ class EmployerController extends Controller
 
         $perPage = $request->input('per_page', 10);
 
-        $employers = Employer::with('user')->paginate($perPage);
+        $employers = Employer::with('user')->latest()->paginate($perPage);
 
         return response()->json($employers, 200);
     }
