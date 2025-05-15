@@ -4,9 +4,10 @@ namespace App\Http\Controllers\Api\Admin\JobSeeker;
 
 use Stripe\Stripe;
 use App\Models\JobSeeker;
-use App\Models\HiringRequest;
+use App\Models\AppliedJob;
 use Illuminate\Http\Request;
 use Stripe\Checkout\Session;
+use App\Models\HiringRequest;
 use App\Mail\ReviewRequestMail;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
@@ -149,45 +150,61 @@ public function show($id)
 
 
     // Assign JobSeekers to a HiringRequest
-    public function assignJobSeekers(Request $request, $id)
-    {
-        $validator = Validator::make($request->all(), [
-            'job_seekers' => 'required|array',
-            'job_seekers.*.id' => 'exists:job_seekers,id',
-            'job_seekers.*.hourly_rate' => 'required|numeric|min:0',
-            'job_seekers.*.total_hours' => 'required|integer|min:0',
-            'job_seekers.*.total_amount' => 'required|numeric|min:0',
-        ]);
+   public function assignJobSeekers(Request $request, $id)
+{
+    $validator = Validator::make($request->all(), [
+        'job_seekers' => 'required|array',
+        'job_seekers.*.id' => 'required|exists:job_seekers,id',
+        'job_seekers.*.hourly_rate' => 'required|numeric|min:0',
+        'job_seekers.*.total_hours' => 'required|integer|min:0',
+        'job_seekers.*.total_amount' => 'required|numeric|min:0',
+        'job_seekers.*.job_application_id' => 'required|exists:applied_jobs,id',
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
-        }
-
-        $HiringRequest = HiringRequest::find($id);
-
-        if (!$HiringRequest) {
-            return response()->json(['message' => 'HiringRequest not found'], 404);
-        }
-
-        // Prepare data for syncing
-        $jobSeekerData = [];
-        foreach ($request->job_seekers as $jobSeeker) {
-            $jobSeekerData[$jobSeeker['id']] = [
-                'hourly_rate' => $jobSeeker['hourly_rate'],
-                'total_hours' => $jobSeeker['total_hours'],
-                'total_amount' => $jobSeeker['total_amount'],
-            ];
-        }
-
-        // Sync job seekers with pivot data
-        $HiringRequest->jobSeekers()->sync($jobSeekerData);
-
-        // Update the status of the HiringRequest
-        $HiringRequest->status = 'assigned';
-        $HiringRequest->save();
-
-        return response()->json(['message' => 'JobSeekers assigned successfully!', 'request_quote' => $HiringRequest]);
+    if ($validator->fails()) {
+        return response()->json([
+            'message' => 'Validation failed',
+            'errors' => $validator->errors()
+        ], 422);
     }
+
+    $hiringRequest = HiringRequest::find($id);
+
+    if (!$hiringRequest) {
+        return response()->json(['message' => 'HiringRequest not found'], 404);
+    }
+
+    // Prepare data for syncing job seekers
+    $jobSeekerData = [];
+    foreach ($request->job_seekers as $jobSeeker) {
+        $jobSeekerData[$jobSeeker['id']] = [
+            'hourly_rate' => $jobSeeker['hourly_rate'],
+            'total_hours' => $jobSeeker['total_hours'],
+            'total_amount' => $jobSeeker['total_amount'],
+        ];
+
+        // Update the corresponding AppliedJob status to 'approved'
+        if (isset($jobSeeker['job_application_id'])) {
+            $appliedJob = AppliedJob::find($jobSeeker['job_application_id']);
+            if ($appliedJob) {
+                $appliedJob->status = 'approved';
+                $appliedJob->save();
+            }
+        }
+    }
+
+    // Sync the job seekers with the pivot data
+    $hiringRequest->jobSeekers()->sync($jobSeekerData);
+
+    // Update hiring request status
+    $hiringRequest->status = 'assigned';
+    $hiringRequest->save();
+
+    return response()->json([
+        'message' => 'JobSeekers assigned and applications approved successfully!',
+        'request_quote' => $hiringRequest
+    ]);
+}
 
 
     // Update status and assign JobSeekers if status is 'assigned'
