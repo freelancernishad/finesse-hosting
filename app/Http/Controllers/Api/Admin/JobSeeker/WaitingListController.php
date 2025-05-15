@@ -8,42 +8,25 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 
-class JobApplicationController extends Controller
+class WaitingListController extends Controller
 {
     /**
-     * Build base query for hiring_request_apply type.
+     * Get the list of waiting list job applications.
      */
-    private function hiringRequestQuery()
+    public function getWaitingListApplications(Request $request)
     {
-        return AppliedJob::where('job_type', 'hiring_request_apply');
-    }
+        $query = AppliedJob::with('jobSeeker', 'admin')
+            ->where('job_type', 'waiting_list')
+            ->latest();
 
-    /**
-     * Get the list of job applications.
-     */
-    public function getJobApplications(Request $request)
-    {
-        $query = AppliedJob::with(['jobSeeker', 'admin', 'jobCategory', 'postJob']);
-
-        // Filter by hiring_request_id via related postJob
-        if ($request->has('hiring_request_id') && $request->hiring_request_id != '') {
-            $hiringRequestId = $request->hiring_request_id;
-            $query->whereHas('postJob', function ($q) use ($hiringRequestId) {
-                $q->where('hiring_request_id', $hiringRequestId);
-            });
-        }
-
-        // Filter by category (array-based match)
         if ($request->has('category') && $request->category != '') {
-            $query->whereJsonContains('category', $request->category);
+            $query->where('category', 'like', '%' . $request->category . '%');
         }
 
-        // Filter by area (array-based match)
         if ($request->has('area') && $request->area != '') {
-            $query->whereJsonContains('area', $request->area);
+            $query->where('area', 'like', '%' . $request->area . '%');
         }
 
-        // Search functionality
         if ($request->has('search') && $request->search != '') {
             $searchTerm = $request->search;
             $query->where(function ($query) use ($searchTerm) {
@@ -57,15 +40,15 @@ class JobApplicationController extends Controller
         }
 
         $perPage = $request->get('per_page', 10);
-        $jobApplications = $query->latest()->paginate($perPage);
+        $jobApplications = $query->paginate($perPage);
 
         return response()->json($jobApplications, 200);
     }
 
     /**
-     * Admin update job application details.
+     * Admin update waiting list application details.
      */
-    public function updateJobApplication(Request $request, $jobApplicationId)
+    public function updateWaitingListApplication(Request $request, $jobApplicationId)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'nullable|string|max:255',
@@ -89,7 +72,7 @@ class JobApplicationController extends Controller
             ], 422);
         }
 
-        $appliedJob = $this->hiringRequestQuery()->findOrFail($jobApplicationId);
+        $appliedJob = AppliedJob::where('job_type', 'waiting_list')->findOrFail($jobApplicationId);
 
         $appliedJob->name = $request->name ?? $appliedJob->name;
         $appliedJob->phone = $request->phone ?? $appliedJob->phone;
@@ -110,15 +93,15 @@ class JobApplicationController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'Job application updated successfully!',
+            'message' => 'Waiting list application updated successfully!',
             'applied_job' => $appliedJob,
         ], 200);
     }
 
     /**
-     * Admin update job application status.
+     * Admin update waiting list application status.
      */
-    public function adminUpdateJobApplication(Request $request, $jobApplicationId)
+    public function adminUpdateWaitingListApplication(Request $request, $jobApplicationId)
     {
         $validator = Validator::make($request->all(), [
             'status' => 'required|in:pending,approved,rejected',
@@ -133,7 +116,7 @@ class JobApplicationController extends Controller
             ], 422);
         }
 
-        $appliedJob = $this->hiringRequestQuery()->findOrFail($jobApplicationId);
+        $appliedJob = AppliedJob::where('job_type', 'waiting_list')->findOrFail($jobApplicationId);
 
         $appliedJob->status = $request->status;
         $appliedJob->review_comments = $request->review_comments;
@@ -143,39 +126,38 @@ class JobApplicationController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'Job application updated successfully!',
+            'message' => 'Waiting list application status updated successfully!',
             'applied_job' => $appliedJob,
         ], 200);
     }
 
     /**
-     * Get details of a specific job application.
+     * Get details of a specific waiting list job application.
      */
-    public function getJobApplicationDetails($jobApplicationId)
+    public function getWaitingListApplicationDetails($jobApplicationId)
     {
-        $appliedJob = $this->hiringRequestQuery()
-            ->with('jobSeeker', 'admin')
+        $appliedJob = AppliedJob::with('jobSeeker', 'admin')
+            ->where('job_type', 'waiting_list')
             ->findOrFail($jobApplicationId);
 
         return response()->json([
             'status' => true,
-            'message' => 'Job application details retrieved successfully!',
+            'message' => 'Waiting list application details retrieved successfully!',
             'applied_job' => $appliedJob,
         ], 200);
     }
 
     /**
-     * Delete a job application (admin only).
+     * Delete a waiting list job application.
      */
-    public function deleteJobApplication($jobApplicationId)
+    public function deleteWaitingListApplication($jobApplicationId)
     {
-        $appliedJob = $this->hiringRequestQuery()->findOrFail($jobApplicationId);
-
+        $appliedJob = AppliedJob::where('job_type', 'waiting_list')->findOrFail($jobApplicationId);
         $appliedJob->delete();
 
         return response()->json([
             'status' => true,
-            'message' => 'Job application deleted successfully!',
+            'message' => 'Waiting list application deleted successfully!',
         ], 200);
     }
 }

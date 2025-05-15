@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Auth\Admin\AdminAuthController;
 use App\Http\Controllers\Api\Admin\JobPost\PostJobController;
 use App\Http\Controllers\Api\Admin\Employer\EmployerController;
 use App\Http\Controllers\Api\Admin\JobSeeker\JobSeekerController;
+use App\Http\Controllers\Api\Admin\JobSeeker\WaitingListController;
 use App\Http\Controllers\Api\Admin\JobCategory\JobCategoryController;
 use App\Http\Controllers\Api\Admin\JobSeeker\JobApplicationController;
 use App\Http\Controllers\Api\Admin\DashboardMetrics\DashboardController;
@@ -63,9 +64,25 @@ Route::prefix('admin')->group(function () {
 
 
 
+       Route::prefix('job-seeker/waiting-list')->group(function () {
+            // Route to get all job applications
+            Route::get('/list', [WaitingListController ::class, 'getWaitingListApplications']);
+
+            Route::post('/{jobApplicationId}/update', [WaitingListController ::class, 'updateWaitingListApplication']);
+
+            // Route to update job application status by admin
+            Route::put('/{jobApplicationId}', [WaitingListController ::class, 'adminUpdateWaitingListApplication']);
+
+            // Route to get details of a specific job application
+            Route::get('/{jobApplicationId}/details', [WaitingListController ::class, 'getWaitingListApplicationDetails']);
+
+            // Route to delete a job application
+            Route::delete('/{jobApplicationId}', [WaitingListController ::class, 'deleteWaitingListApplication']);
+        });
 
 
-        Route::prefix('job-seeker/waiting-list')->group(function () {
+
+        Route::prefix('job-seeker/job/application')->group(function () {
             // Route to get all job applications
             Route::get('/list', [JobApplicationController::class, 'getJobApplications']);
 
