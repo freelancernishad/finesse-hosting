@@ -23,7 +23,7 @@ return new class extends Migration
             $table->decimal('max_salary', 10, 2)->nullable();
             $table->string('location');
             $table->text('description')->nullable();
-            $table->enum('status', ['open', 'closed', 'draft'])->default('open');
+            $table->enum('status', ['open', 'assigned', 'closed', 'draft'])->default('open');
             $table->timestamps();
         });
     }
