@@ -86,6 +86,7 @@ class JobApplicationController extends Controller
         'category' => $jobCategory->name,
         'job_category_id' => $jobCategory->id,
         'job_seeker_id' => $jobSeeker->id,
+        'job_type' => 'waiting_list', // Set job_type to 'waiting_list'
     ]);
 
     // Handle the interest file upload
@@ -145,9 +146,9 @@ class JobApplicationController extends Controller
     // Get status filter from request
     $status = $request->query('status'); // Example values: 'pending', 'approved', 'rejected'
 
-    // Query applied jobs for the authenticated job seeker where post_job_id is null
+    // Query applied jobs for the authenticated job seeker where job_type is 'waiting_list'
     $query = AppliedJob::where('job_seeker_id', $jobSeeker->id)
-                       ->whereNull('post_job_id') // Ensure post_job_id is null
+                       ->where('job_type', 'waiting_list') // Ensure job_type is 'waiting_list'
                        ->latest();
 
     // Apply status filter if provided
@@ -304,6 +305,7 @@ public function applyForPostedJob(Request $request)
         'experience' => $request->experience,
         'preferred_contact_mehtod' => $request->preferred_contact_method,
         'on_call_status' => $request->on_call_status,
+        'job_type' => 'hiring_request_apply', // Set job_type to 'hiring_request_apply'
     ]);
 
     // Save interest file if present
@@ -360,6 +362,7 @@ public function getPostedJobApplications(Request $request)
     $postJobId = $request->query('post_job_id');
 
     $query = AppliedJob::where('job_seeker_id', $jobSeeker->id)
+                       ->where('job_type', 'hiring_request_apply') // Filter by job_type 'hiring_request_apply'
                        ->whereNotNull('post_job_id') // Ensure post_job_id is not null
                        ->where('post_job_id', '!=', '') // Ensure post_job_id is not an empty string
                        ->latest();

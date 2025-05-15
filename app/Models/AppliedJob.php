@@ -15,11 +15,13 @@ class AppliedJob extends Model
         'post_code', 'address', 'interest_file', 'area', 'category', 'job_seeker_id',
         'status', 'review_comments', 'admin_id', 'unique_job_apply_id', 'job_category_id','post_job_id',
             'describe_yourself', 'resume', 'cover_letter', 'experience',
-    'preferred_contact_method', 'on_call_status'
+    'preferred_contact_method', 'on_call_status','job_type',
+
     ];
 
     protected $hidden = [
         'unique_job_apply_id',
+        'job_seeker_id'
     ];
 
     // Ensure 'area' is cast to array when accessed

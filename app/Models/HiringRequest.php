@@ -132,7 +132,7 @@ class HiringRequest extends Model
 
         return $this->hasMany(JobSeeker::class, 'id')
             ->whereNotIn('id', $assignedJobSeekerIds ?: [0])
-            ->whereHas('appliedJobs', function ($q) use ($requestedCategoryNames) {
+            ->whereHas('approvedJobCategories', function ($q) use ($requestedCategoryNames) {
                 $q->whereIn('category', $requestedCategoryNames);
             });
     }

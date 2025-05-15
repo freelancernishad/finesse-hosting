@@ -27,12 +27,16 @@ class JobSeeker extends Authenticatable
         'average_review_rating',
         'review_summary',
         'total_reviews',
-        'approved_job_roles',
+        'approved_job_category',
         'last_review',
         'name',
         'email', // <-- Add this
     ];
 
+    protected $with = [
+        // 'appliedJobs',
+
+    ];
 
 
 
@@ -53,19 +57,47 @@ class JobSeeker extends Authenticatable
         return $this->belongsTo(User::class);
     }
 
+
     public function appliedJobs()
     {
-        return $this->hasMany(AppliedJob::class)->where('status', 'approved')->select(['id', 'category', 'area']);
+        return $this->hasMany(AppliedJob::class)
+            ->where('status', 'pending')
+            ->where('job_type', 'hiring_request_apply')
+            ->select(['id', 'category', 'area','job_seeker_id']);
     }
+
+
+
+
+    public function approvedJobCategories()
+    {
+        return $this->hasMany(AppliedJob::class)
+            ->where('status', 'approved')
+            ->select(['id', 'category', 'area']);
+    }
+
+
+
+
+    public function waitingList()
+    {
+        return $this->hasMany(AppliedJob::class)
+            ->where('status', 'approved')
+            ->where('job_type', 'waiting_list')
+            ->select(['id', 'category', 'area']);
+    }
+
+
+
 
     public function reviews()
     {
         return $this->hasMany(Review::class, 'job_seeker_id');
     }
 
-    public function getApprovedJobRolesAttribute()
+    public function getApprovedJobCategoryAttribute()
     {
-        return $this->appliedJobs
+        return $this->approvedJobCategories
             ->pluck('category')
             ->unique()
             ->values()

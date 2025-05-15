@@ -259,11 +259,11 @@ public function show($id)
                 ->toArray();
 
             $query->whereNotIn('id', $assignedJobSeekerIds ?: [0])
-                ->whereHas('appliedJobs', function ($q) use ($requestedCategoryNames) {
+                ->whereHas('approvedJobCategories', function ($q) use ($requestedCategoryNames) {
                     $q->whereIn('category', $requestedCategoryNames);
                 });
         } else {
-            $query->whereHas('appliedJobs', function ($q) {
+            $query->whereHas('approvedJobCategories', function ($q) {
                 $q->whereNotNull('category');
             });
         }
