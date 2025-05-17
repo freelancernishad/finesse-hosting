@@ -47,6 +47,8 @@ Route::prefix('admin')->group(function () {
             Route::post('{id}', [JobSeekerController::class, 'update']); // Update a JobSeeker
             Route::delete('{id}', [JobSeekerController::class, 'destroy']); // Delete a JobSeeker
             Route::get('/request-quote/{HiringRequestId}/job-seekers', [JobSeekerController::class, 'getJobSeekersByHiringRequest']); // Get JobSeekers by HiringRequest
+            Route::patch('{id}/on-call-status', [JobSeekerController::class, 'updateOnCallStatus']);
+
         });
          Route::get('/download-resume/{job_seeker_id}', [JobSeekerController::class, 'downloadResume']);
 

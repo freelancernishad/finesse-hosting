@@ -237,4 +237,25 @@ class JobSeekerController extends Controller
 
         return response()->json( $jobSeekers, 200);
     }
+
+
+    public function updateOnCallStatus(Request $request, $id)
+    {
+        $jobSeeker = JobSeeker::findOrFail($id);
+
+        // Validate the request
+        $request->validate([
+            'on_call_status' => 'required|string|in:Stand by,On-call',
+        ]);
+
+        // Update the on_call_status
+        $jobSeeker->on_call_status = $request->on_call_status;
+        $jobSeeker->save();
+
+        return response()->json([
+            'message' => 'on_call_status updated successfully.',
+            'job_seeker' => $jobSeeker
+        ], 200);
+    }
+
 }
