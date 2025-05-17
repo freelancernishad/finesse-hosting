@@ -27,6 +27,9 @@ class Employer extends Model
         'hired_before',
     ];
 
+protected $casts = [
+    'social_links' => 'array',
+];
 
     protected $appends = [
         'name',

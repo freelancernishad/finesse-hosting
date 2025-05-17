@@ -246,7 +246,7 @@ class UserProfileController extends Controller
                 'business_location' => 'nullable|string|max:255',
                 'years_in_operation' => 'nullable|string|max:100',
                 'company_description' => 'nullable|string',
-                'social_links' => 'nullable|string', // or 'array' if JSON
+                'social_links' => 'nullable|array',
                 'designation' => 'nullable|string|max:255',
                 'bio' => 'nullable|string',
                 'preferred_contact_time' => 'nullable|string|max:100',
