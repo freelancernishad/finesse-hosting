@@ -17,7 +17,7 @@ class PostJobController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'hiring_request_id' => 'required|exists:hiring_requests,id',
+            'hiring_request_id' => 'nullable|exists:hiring_requests,id',
             'title' => 'required|string|max:255',
             'category' => 'required|array',
             'category.*' => 'string|max:255',
