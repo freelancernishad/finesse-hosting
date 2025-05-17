@@ -159,6 +159,14 @@ class UserProfileController extends Controller
                 'country' => 'nullable|string|max:255',
                 'resume' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
                 'profile_picture' => 'nullable|image|max:2048',
+
+                // New JSON/array fields
+                'language' => 'nullable|array',
+                'skills' => 'nullable|array',
+                'certificate' => 'nullable|array',
+                'education' => 'nullable|array',
+                'employment_history' => 'nullable|array',
+
             ]);
 
             if ($validator->fails()) {
@@ -172,6 +180,12 @@ class UserProfileController extends Controller
                 'post_code',
                 'city',
                 'country',
+
+                'language',
+                'skills',
+                'certificate',
+                'education',
+                'employment_history',
             ]));
 
             if ($request->hasFile('resume')) {

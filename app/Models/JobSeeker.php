@@ -14,6 +14,7 @@ class JobSeeker extends Authenticatable
     protected $fillable = [
         'user_id', 'member_id', 'id_no', 'phone_number',
         'location', 'post_code', 'city', 'country', 'join_date', 'resume',
+        'language', 'skills', 'certificate', 'education', 'employment_history',
     ];
 
     protected $hidden = [
@@ -21,6 +22,11 @@ class JobSeeker extends Authenticatable
     ];
 
     protected $casts = [
+        'language' => 'array',
+        'skills' => 'array',
+        'certificate' => 'array',
+        'education' => 'array',
+        'employment_history' => 'array',
     ];
 
     protected $appends = [
