@@ -154,9 +154,9 @@ class UserProfileController extends Controller
                 'id_no' => 'nullable|string|max:255',
                 'phone_number' => 'nullable|string|max:20',
                 'location' => 'nullable|string|max:255',
-                'post_code' => 'nullable|string|max:20',
-                'city' => 'nullable|string|max:255',
-                'country' => 'nullable|string|max:255',
+                // 'post_code' => 'nullable|string|max:20',
+                // 'city' => 'nullable|string|max:255',
+                // 'country' => 'nullable|string|max:255',
                 'description' => 'nullable|string',
                 'resume' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
                 'profile_picture' => 'nullable|image|max:2048',
@@ -189,6 +189,12 @@ class UserProfileController extends Controller
                 'education',
                 'employment_history',
             ]));
+
+
+                // Override these fields from $user, NOT from request
+            $profile->post_code = $user->zip_code;
+            $profile->city = $user->city;
+            $profile->country = $user->country;
 
             if ($request->hasFile('resume')) {
                 $resumePath = $request->file('resume')->store('resumes', 'public');
