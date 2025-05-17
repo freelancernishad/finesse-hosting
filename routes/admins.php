@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\Admin\JobCategory\JobCategoryController;
 use App\Http\Controllers\Api\Admin\JobSeeker\JobApplicationController;
 use App\Http\Controllers\Api\Admin\DashboardMetrics\DashboardController;
 use App\Http\Controllers\Api\Admin\JobSeeker\JobSeekerHiringRequestController;
+use App\Http\Controllers\Api\Admin\HiringConsultationRequestController as AdminHCR;
 
 
 Route::prefix('auth/admin')->group(function () {
@@ -149,7 +150,8 @@ Route::prefix('admin')->group(function () {
 
 
 
-
+    Route::get('/hiring-consultation-requests', [AdminHCR::class, 'index']);
+    Route::put('/hiring-consultation-requests/{id}/status', [AdminHCR::class, 'updateStatus']);
 
 
 

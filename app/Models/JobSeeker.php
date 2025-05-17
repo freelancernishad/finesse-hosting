@@ -14,7 +14,7 @@ class JobSeeker extends Authenticatable
     protected $fillable = [
         'user_id', 'member_id', 'id_no', 'phone_number',
         'location', 'post_code', 'city', 'country', 'join_date', 'resume','description',
-        'language', 'skills', 'certificate', 'education', 'employment_history',
+        'language', 'skills', 'certificate', 'education', 'employment_history','on_call_status',
     ];
 
     protected $hidden = [

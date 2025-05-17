@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Auth\User\AuthUserController;
 use App\Http\Controllers\Api\JobSeeker\JobSeekerController;
 use App\Http\Controllers\Api\JobSeeker\JobApplicationController;
 use App\Http\Controllers\Api\Auth\User\UserPasswordResetController;
+use App\Http\Controllers\Api\User\HiringConsultationRequestController;
 use App\Http\Controllers\Api\User\UserManagement\UserProfileController;
 use App\Http\Controllers\Api\Global\HiringRequest\HiringRequestController;
 use App\Http\Controllers\Api\Admin\JobSeeker\JobSeekerHiringRequestController;
@@ -67,6 +68,11 @@ Route::prefix('user')->group(function () {
 
         Route::post('/hiring-request', [HiringRequestController::class, 'store']);
         Route::post('/request-quote', [HiringRequestController::class, 'store']);
+
+
+          Route::post('/hiring-consultation-requests', [HiringConsultationRequestController::class, 'store']);
+            Route::get('/hiring-consultation-requests', [HiringConsultationRequestController::class, 'index']);
+
 
 
 

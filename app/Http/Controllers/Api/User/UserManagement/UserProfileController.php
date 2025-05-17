@@ -168,6 +168,9 @@ class UserProfileController extends Controller
                 'education' => 'nullable|array',
                 'employment_history' => 'nullable|array',
 
+                // 👇 Add validation for on_call_status
+                'on_call_status' => 'nullable|in:Stand by,On-call',
+
             ]);
 
             if ($validator->fails()) {
@@ -188,6 +191,7 @@ class UserProfileController extends Controller
                 'certificate',
                 'education',
                 'employment_history',
+                'on_call_status', // 👈 Add this line
             ]));
 
 
