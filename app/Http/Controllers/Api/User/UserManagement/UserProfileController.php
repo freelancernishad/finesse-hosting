@@ -157,6 +157,7 @@ class UserProfileController extends Controller
                 'post_code' => 'nullable|string|max:20',
                 'city' => 'nullable|string|max:255',
                 'country' => 'nullable|string|max:255',
+                'description' => 'nullable|string',
                 'resume' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
                 'profile_picture' => 'nullable|image|max:2048',
 
@@ -180,6 +181,7 @@ class UserProfileController extends Controller
                 'post_code',
                 'city',
                 'country',
+                'description',
 
                 'language',
                 'skills',
