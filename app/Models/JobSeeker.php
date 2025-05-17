@@ -152,13 +152,33 @@ class JobSeeker extends Authenticatable
         return tap($this)->update(['resume' => $filePath])->resume;
     }
 
+    // protected static function boot()
+    // {
+    //     parent::boot();
+    //     static::creating(fn($jobSeeker) => $jobSeeker->fill([
+    //         'member_id' => static::generateUniqueMemberId()
+    //     ]));
+
+
+
+    // }
+
+
     protected static function boot()
     {
         parent::boot();
-        static::creating(fn($jobSeeker) => $jobSeeker->fill([
-            'member_id' => static::generateUniqueMemberId()
-        ]));
+
+        static::creating(function ($jobSeeker) {
+            // Generate unique member ID
+            $jobSeeker->member_id = static::generateUniqueMemberId();
+
+            // Set join_date to current date if not already set
+            if (empty($jobSeeker->join_date)) {
+                $jobSeeker->join_date = now()->toDateString();
+            }
+        });
     }
+
 
     protected static function generateUniqueMemberId(): int
     {
