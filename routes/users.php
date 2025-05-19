@@ -39,7 +39,7 @@ Route::prefix('user')->group(function () {
 
 
 
-        Route::get('/empolyer/overview', [UserProfileController::class, 'EmployerOverview']);
+        Route::get('/employer/overview', [UserProfileController::class, 'EmployerOverview']);
 
 
 
