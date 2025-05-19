@@ -252,4 +252,10 @@ public function getProfileCompletionAttribute(): int
         $this->attributes['business_name'] = $value;
     }
 
+        public function hiringRequests()
+    {
+        return $this->hasMany(HiringRequest::class);
+    }
+
+
 }

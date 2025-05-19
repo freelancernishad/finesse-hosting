@@ -35,6 +35,16 @@ Route::post('user/password/reset', [UserPasswordResetController::class, 'reset']
 Route::prefix('user')->group(function () {
     Route::middleware(AuthenticateUser::class)->group(function () {
 
+
+
+
+
+        Route::get('/empolyer/overview', [UserProfileController::class, 'EmployerOverview']);
+
+
+
+
+
         Route::get('/profile', [UserProfileController::class, 'getProfile']);
         Route::put('/update-profile', [UserProfileController::class, 'updateProfile']);
         Route::post('/update-profile-picture', [UserProfileController::class, 'updateProfilePicture']);

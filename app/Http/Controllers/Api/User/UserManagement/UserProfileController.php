@@ -10,6 +10,34 @@ use Illuminate\Support\Facades\Validator;
 
 class UserProfileController extends Controller
 {
+
+
+
+        public function EmployerOverview(Request $request)
+        {
+            if (Auth::guard('api')->check()) {
+                $user = Auth::guard('api')->user();
+            } else {
+                $user = $request->user();
+            }
+
+            $hiringSummary = $user->hiringRequests()
+                ->selectRaw("status, COUNT(*) as count")
+                ->groupBy('status')
+                ->pluck('count', 'status');
+
+            return response()->json([
+                'pending'   => $hiringSummary->get('pending', 0),
+                'confirmed' => $hiringSummary->get('confirmed', 0),
+                'assigned'  => $hiringSummary->get('assigned', 0),
+                'completed' => $hiringSummary->get('completed', 0),
+                'canceled'  => $hiringSummary->get('canceled', 0),
+            ]);
+        }
+
+
+
+
     /**
      * Get the authenticated user's profile.
      *

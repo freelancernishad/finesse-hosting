@@ -11,7 +11,7 @@ class Employer extends Model
 
     protected $fillable = [
         'user_id',
-        'profile_picture',
+        'profile_picture', // will remove this
         'company_name',
         'industry',
         'website',
