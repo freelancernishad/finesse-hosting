@@ -194,7 +194,7 @@ public function applyForPostedJob(Request $request)
 
     $validator = Validator::make($request->all(), [
         'interest_file' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
-        'area' => 'required|array|min:1',
+        'area' => 'nullable|array',
         'area.*' => 'string|max:255',
         'post_job_id' => 'nullable|exists:post_jobs,id',
         'job_category_id' => 'required_without:post_job_id|nullable|exists:job_categories,id',
