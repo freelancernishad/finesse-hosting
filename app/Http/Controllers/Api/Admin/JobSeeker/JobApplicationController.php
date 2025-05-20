@@ -35,7 +35,7 @@ class JobApplicationController extends Controller
 
         // Filter by category (array-based match)
         if ($request->has('category') && $request->category != '') {
-            $query->whereJsonContains('category', $request->category);
+            $query->where('category', $request->category);
         }
 
         // Filter by area (array-based match)

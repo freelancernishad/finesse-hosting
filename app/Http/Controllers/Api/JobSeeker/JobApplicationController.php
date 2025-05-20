@@ -6,6 +6,7 @@ use App\Models\AppliedJob;
 use App\Models\JobCategory;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\PostJob;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
@@ -195,8 +196,8 @@ public function applyForPostedJob(Request $request)
         'interest_file' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
         'area' => 'required|array|min:1',
         'area.*' => 'string|max:255',
-        'post_job_id' => 'nullable|exists:post_jobs,id', // Ensure job exists
-        'job_category_id' => 'required|exists:job_categories,id', // Ensure job category is valid
+        'post_job_id' => 'nullable|exists:post_jobs,id',
+        'job_category_id' => 'required_without:post_job_id|nullable|exists:job_categories,id',
 
         // Fields for user and jobSeeker fallback
         'country' => 'nullable|string|max:255',
@@ -224,7 +225,21 @@ public function applyForPostedJob(Request $request)
     }
 
     $postJobId = $request->post_job_id;
+
+
+
     $jobCategoryId = $request->job_category_id;
+
+    if(!$request->job_category_id){
+        $getPostJob = PostJob::find($postJobId);
+        $jobCategory = $getPostJob->category;
+        $category = $jobCategory;
+        $jobCategoryId = JobCategory::where('name', $jobCategory)->first()->id;
+    }else{
+        $jobCategory = JobCategory::find($jobCategoryId)->name;
+        $category = $jobCategory;
+    }
+
 
     // Prevent duplicate application for same job post
     $alreadyApplied = AppliedJob::where('post_job_id', $postJobId)
@@ -296,6 +311,7 @@ public function applyForPostedJob(Request $request)
         'address' => $user->street_address,
         'area' => $request->area,
         'post_job_id' => $postJobId,
+        'category' => $category,
         'job_category_id' => $jobCategoryId,  // Add job category ID here
         'job_seeker_id' => $jobSeeker->id,
 
@@ -323,7 +339,7 @@ public function applyForPostedJob(Request $request)
     return response()->json([
         'status' => true,
         'message' => 'Application submitted successfully!',
-        'Waiting_list' => $appliedJob,
+        'job_apply' => $appliedJob,
     ], 200);
 }
 

@@ -26,7 +26,7 @@ class PostJob extends Model
     protected $casts = [
         'min_salary' => 'decimal:2',
         'max_salary' => 'decimal:2',
-        'category' => 'array',
+        // 'category' => 'array',
     ];
 
     // Relationships
