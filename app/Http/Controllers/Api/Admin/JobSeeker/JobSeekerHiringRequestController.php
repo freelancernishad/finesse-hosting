@@ -95,6 +95,7 @@ public function show($id)
             'company_info' => $hiringRequest->company_info,
             'expected_joining_date' => $hiringRequest->expected_joining_date,
             'type_of_hiring' => $hiringRequest->type_of_hiring,
+            'model_name' => $hiringRequest->model_name,
             'min_yearly_salary' => $hiringRequest->min_yearly_salary,
             'mix_yearly_salary' => $hiringRequest->mix_yearly_salary,
             'total_hours' => $hiringRequest->total_hours,
