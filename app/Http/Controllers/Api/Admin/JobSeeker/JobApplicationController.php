@@ -33,6 +33,13 @@ class JobApplicationController extends Controller
             });
         }
 
+
+        // ✅ Filter by post_job_id
+        if ($request->has('post_job_id') && $request->post_job_id != '') {
+            $query->where('post_job_id', $request->post_job_id);
+        }
+
+
         // Filter by category (array-based match)
         if ($request->has('category') && $request->category != '') {
             $query->where('category', $request->category);
