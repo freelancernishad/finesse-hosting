@@ -29,10 +29,10 @@ class PostJob extends Model
         // 'category' => 'array',
     ];
 
-    protected $appends = ['total_job_applicantions'];
+    protected $appends = ['total_applicant'];
 
 
-    public function getTotalJobApplicantionsAttribute()
+    public function getTotalApplicantAttribute()
     {
         return $this->jobApplicaions()->count();
     }
