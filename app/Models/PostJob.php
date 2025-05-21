@@ -29,9 +29,26 @@ class PostJob extends Model
         // 'category' => 'array',
     ];
 
+    protected $appends = ['total_job_applicantions'];
+
+
+    public function getTotalJobApplicantionsAttribute()
+    {
+        return $this->jobApplicaions()->count();
+    }
+
+
     // Relationships
     public function hiringRequest()
     {
         return $this->belongsTo(HiringRequest::class);
     }
+
+
+    public function jobApplicaions()
+    {
+        return $this->hasMany(AppliedJob::class, 'post_job_id');
+    }
+
+
 }
