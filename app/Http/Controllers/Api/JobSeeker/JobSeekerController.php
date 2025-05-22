@@ -57,6 +57,17 @@ class JobSeekerController extends Controller
             'country' => $jobSeeker->country,
             'join_date' => $jobSeeker->join_date,
             'resume' => $jobSeeker->resume,
+
+            'description' => $jobSeeker->description,
+            'language' => $jobSeeker->language,
+            'skills' => $jobSeeker->skills,
+            'certificate' => $jobSeeker->certificate,
+            'education' => $jobSeeker->education,
+            'employment_history' => $jobSeeker->employment_history,
+            'on_call_status' => $jobSeeker->on_call_status,
+
+
+
             'created_at' => $jobSeeker->created_at,
             'updated_at' => $jobSeeker->updated_at,
             'average_review_rating' => $jobSeeker->average_review_rating,
