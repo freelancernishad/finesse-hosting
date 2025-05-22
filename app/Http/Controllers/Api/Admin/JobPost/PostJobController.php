@@ -110,7 +110,7 @@ class PostJobController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'status' => 'required|in:open,closed,draft',
+            'status' => 'required|in:assigned,open,closed,draft',
         ]);
 
         if ($validator->fails()) {
