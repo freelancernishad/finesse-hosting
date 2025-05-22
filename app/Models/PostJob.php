@@ -50,5 +50,10 @@ class PostJob extends Model
         return $this->hasMany(AppliedJob::class, 'post_job_id');
     }
 
+    public function jobApplications()
+    {
+        return $this->hasMany(AppliedJob::class, 'post_job_id');
+    }
+
 
 }

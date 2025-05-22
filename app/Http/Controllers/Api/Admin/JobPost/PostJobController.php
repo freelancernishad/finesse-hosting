@@ -70,7 +70,7 @@ class PostJobController extends Controller
 
     public function show(PostJob $postJob)
     {
-        $postJob->load('hiringRequest','jobApplicaions');
+        $postJob->load('hiringRequest','jobApplications');
         return $postJob;
     }
 
