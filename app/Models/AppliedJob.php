@@ -21,7 +21,7 @@ class AppliedJob extends Model
 
     protected $hidden = [
         'unique_job_apply_id',
-        'job_seeker_id'
+        // 'job_seeker_id'
     ];
 
     // Ensure 'area' is cast to array when accessed
