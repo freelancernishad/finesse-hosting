@@ -23,7 +23,7 @@ class JobSeekerController extends Controller
             // Admin is authenticated, fetch JobSeeker by ID
             $jobSeeker = JobSeeker::with(['HiringRequests' => function ($query) {
                 $query->whereIn('status', ['assigned', 'completed']); // Fetch both assigned and completed quotes
-            }])->findOrFail($id);
+            },'user'])->findOrFail($id);
         } else {
             // Otherwise, authenticate as JobSeeker
             $jobSeeker = Auth::guard('job_seeker')->user();
@@ -33,15 +33,17 @@ class JobSeekerController extends Controller
                 ], 401);
             }
 
-            // Load assigned & completed request quotes for the job seeker
-            $jobSeeker->load(['HiringRequests' => function ($query) {
+            // Retrieve the JobSeeker model with the required relations
+            $jobSeeker = JobSeeker::with(['HiringRequests' => function ($query) {
                 $query->whereIn('status', ['assigned', 'completed']); // Fetch both assigned and completed quotes
-            }]);
+            }, 'user'])->findOrFail($jobSeeker->id);
         }
 
+        // return response()->json($jobSeeker->user);
         return response()->json([
             'id' => $jobSeeker->id,
-            'name' => $jobSeeker->name,
+            'name' => $jobSeeker->user->name,
+            'profile_picture' => $jobSeeker->user->profile_picture,
             'member_id' => $jobSeeker->member_id,
             'id_no' => $jobSeeker->id_no,
             'phone_number' => $jobSeeker->phone_number,
@@ -55,7 +57,6 @@ class JobSeekerController extends Controller
             'country' => $jobSeeker->country,
             'join_date' => $jobSeeker->join_date,
             'resume' => $jobSeeker->resume,
-            'profile_picture' => $jobSeeker->profile_picture,
             'created_at' => $jobSeeker->created_at,
             'updated_at' => $jobSeeker->updated_at,
             'average_review_rating' => $jobSeeker->average_review_rating,
@@ -64,6 +65,7 @@ class JobSeekerController extends Controller
             'approved_job_roles' => $jobSeeker->approved_job_roles,
             'last_review' => $jobSeeker->last_review,
             'applied_jobs' => $jobSeeker->applied_jobs,
+            'user' => $jobSeeker->user,
             'is_assigned_quote' => $jobSeeker->HiringRequests->where('status', 'assigned')->isNotEmpty(),
             'assigned_quotes' => $jobSeeker->HiringRequests->where('status', 'assigned')->values(),
             'completed_quotes' => $jobSeeker->HiringRequests->where('status', 'completed')->values(),
