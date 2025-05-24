@@ -19,48 +19,47 @@ use Illuminate\Support\Facades\Validator;
 class JobSeekerHiringRequestController extends Controller
 {
     // Get all HiringRequests with related JobSeekers
-    public function index(Request $request)
-    {
-        $perPage = $request->input('per_page', 10); // Default to 10 per page
-        $status = $request->input('status'); // Get status filter from request
-        $userId = $request->input('user_id'); // Admin can filter by user_id
-        $sortBy = $request->input('sort_by', 'created_at'); // Default sort by created_at
-        $sortOrder = $request->input('sort_order', 'desc'); // Default sort order is descending
+public function index(Request $request)
+{
+    $perPage = $request->input('per_page', 10);
+    $status = $request->input('status');
+    $userId = $request->input('user_id');
+    $sortBy = $request->input('sort_by', 'created_at');
+    $sortOrder = $request->input('sort_order', 'desc');
 
-        $query = HiringRequest::with([
-            'jobSeekers' => function ($query) {
-                $query->select('job_seekers.id', 'users.name as job_seeker_name', 'job_seekers.member_id')
-                      ->join('users', 'users.id', '=', 'job_seekers.user_id')
-                      ->withPivot('hourly_rate', 'total_hours', 'total_amount');
-            }
-        ]);
-
-        // Apply status filter if provided
-        if (!empty($status)) {
-            $query->where('status', $status);
+    $query = HiringRequest::with([
+        'jobSeekers' => function ($query) {
+            $query->select('job_seekers.id', 'users.name as job_seeker_name', 'job_seekers.member_id')
+                ->join('users', 'users.id', '=', 'job_seekers.user_id')
+                ->withPivot('hourly_rate', 'total_hours', 'total_amount');
         }
+    ]);
 
-        // 👇 Check Guard and Apply Filters
-        if (auth()->guard('admin')->check()) {
-            // Admin: can see all, or filter by user_id
-            if (!empty($userId)) {
-                $query->where('user_id', $userId);
-            }
-        } else if (auth()->guard('api')->check()) {
-            // Normal User: see only his/her own requests
-            $user = auth()->guard('api')->user();
-            $query->where('user_id', $user->id);
-        }
-
-        $query->withCount(['matchedJobSeekers as matched_job_seekers_count']);
-
-        // Apply sorting
-        $query->orderBy($sortBy, $sortOrder);
-
-        $HiringRequests = $query->paginate($perPage); // Apply pagination
-
-        return response()->json($HiringRequests);
+    if (!empty($status)) {
+        $query->where('status', $status);
     }
+
+    if (auth()->guard('admin')->check()) {
+        if (!empty($userId)) {
+            $query->where('user_id', $userId);
+        }
+    } else if (auth()->guard('api')->check()) {
+        $user = auth()->guard('api')->user();
+        $query->where('user_id', $user->id);
+    }
+
+    $query->orderBy($sortBy, $sortOrder);
+
+    $HiringRequests = $query->paginate($perPage);
+
+    // Add matched job seekers to each HiringRequest model instance
+    $HiringRequests->getCollection()->transform(function ($hiringRequest) {
+        $hiringRequest->matched_job_seekers_count  = $hiringRequest->matchedJobSeekers();
+        return $hiringRequest;
+    });
+
+    return response()->json($HiringRequests);
+}
 
 
 
