@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -122,6 +124,7 @@ class HiringRequest extends Model
             : $this->selected_categories;
 
         $requestedCategoryNames = collect($selectedCategories)->pluck('name')->toArray();
+        Log::info('Requested Category Names: ' . json_encode($requestedCategoryNames));
 
         // Get all assigned job seeker IDs (any hiring request that is not 'completed')
         $assignedJobSeekerIds = DB::table('hiring_request_job_seeker')
@@ -129,6 +132,8 @@ class HiringRequest extends Model
             ->where('hiring_requests.status', '!=', 'completed')
             ->pluck('job_seeker_id')
             ->toArray();
+
+        Log::info('Assigned Job Seeker IDs: ' . json_encode($assignedJobSeekerIds));
 
         return $this->hasMany(JobSeeker::class, 'id')
             ->whereNotIn('id', $assignedJobSeekerIds ?: [0])
