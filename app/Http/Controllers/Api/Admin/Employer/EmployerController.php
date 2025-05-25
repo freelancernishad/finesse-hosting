@@ -25,7 +25,7 @@ class EmployerController extends Controller
     // Show a specific Employer
     public function show($id)
     {
-        $employer = Employer::with('user')->findOrFail($id);
+        $employer = Employer::with(['user', 'hiringRequests'])->findOrFail($id);
 
         return response()->json($employer, 200);
     }

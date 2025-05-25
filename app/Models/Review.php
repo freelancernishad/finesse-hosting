@@ -46,4 +46,9 @@ class Review extends Model
     {
         return str_repeat('⭐', $this->rating);
     }
+
+    // public function reviews()
+    // {
+    //     return $this->hasManyThrough(Review::class, HiringRequest::class, 'user_id', 'request_quote_id', 'user_id', 'id');
+    // }
 }

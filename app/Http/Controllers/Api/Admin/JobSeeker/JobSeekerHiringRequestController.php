@@ -118,7 +118,7 @@ public function show($id)
                 'full_address' => $user->full_address,
                 'profile' => $employer, // You may format this as needed too
             ],
-            'job_seekers' => $hiringRequest->jobSeekers->map(function ($js) {
+            'assigned_job_seekers' => $hiringRequest->jobSeekers->map(function ($js) {
                 return [
                     'id' => $js->id,
                     'name' => $js->user->name ?? null,

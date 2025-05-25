@@ -51,4 +51,11 @@ protected $casts = [
     {
         return $this->belongsTo(User::class);
     }
+
+    // Hiring requests made by this employer
+    public function hiringRequests()
+    {
+        return $this->hasMany(HiringRequest::class, 'user_id', 'user_id');
+    }
+
 }

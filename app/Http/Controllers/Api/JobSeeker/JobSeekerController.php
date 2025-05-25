@@ -21,22 +21,32 @@ class JobSeekerController extends Controller
     {
         if (Auth::guard('admin')->check()) {
             // Admin is authenticated, fetch JobSeeker by ID
-            $jobSeeker = JobSeeker::with(['HiringRequests' => function ($query) {
+            $jobSeeker = JobSeeker::with([
+            'HiringRequests' => function ($query) {
                 $query->whereIn('status', ['assigned', 'completed']); // Fetch both assigned and completed quotes
-            },'user'])->findOrFail($id);
+            },
+            'user',
+            'waitingLists',
+            'jobApplications'
+            ])->findOrFail($id);
         } else {
             // Otherwise, authenticate as JobSeeker
             $jobSeeker = Auth::guard('job_seeker')->user();
             if (!$jobSeeker) {
-                return response()->json([
-                    'message' => 'Unauthorized',
-                ], 401);
+            return response()->json([
+                'message' => 'Unauthorized',
+            ], 401);
             }
 
             // Retrieve the JobSeeker model with the required relations
-            $jobSeeker = JobSeeker::with(['HiringRequests' => function ($query) {
+            $jobSeeker = JobSeeker::with([
+            'HiringRequests' => function ($query) {
                 $query->whereIn('status', ['assigned', 'completed']); // Fetch both assigned and completed quotes
-            }, 'user'])->findOrFail($jobSeeker->id);
+            },
+            'user',
+            'waitingLists',
+            'jobApplications'
+            ])->findOrFail($jobSeeker->id);
         }
 
         // return response()->json($jobSeeker->user);
@@ -77,11 +87,16 @@ class JobSeekerController extends Controller
             'last_review' => $jobSeeker->last_review,
             'applied_jobs' => $jobSeeker->applied_jobs,
             'user' => $jobSeeker->user,
+            'waiting_lists' => $jobSeeker->waitingLists,
+            'job_applications' => $jobSeeker->jobApplications,
             'is_assigned_quote' => $jobSeeker->HiringRequests->where('status', 'assigned')->isNotEmpty(),
             'assigned_quotes' => $jobSeeker->HiringRequests->where('status', 'assigned')->values(),
             'completed_quotes' => $jobSeeker->HiringRequests->where('status', 'completed')->values(),
         ]);
     }
+
+
+
 
 
 

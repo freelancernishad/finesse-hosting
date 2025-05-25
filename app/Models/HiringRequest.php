@@ -71,6 +71,11 @@ class HiringRequest extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function employer()
+    {
+        return $this->belongsTo(Employer::class, 'user_id', 'user_id');
+    }
+
     public function jobSeekers()
     {
         return $this->belongsToMany(JobSeeker::class, 'hiring_request_job_seeker', 'hiring_request_id', 'job_seeker_id')

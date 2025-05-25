@@ -16,38 +16,53 @@ class JobCategoryController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-     public function getIndustryCategories(Request $request)
-     {
-         // Base query
-         $query = JobCategory::query()
-             ->withCount([
-                 'appliedJobs' => function ($q) {
-                     $q->where('status', 'approved');
-                 }
-             ])
-             ->with('categories'); // 👈 Load children relation
+ public function getIndustryCategories(Request $request)
+{
+    // Base query for parent categories
+    $query = JobCategory::query()
+        ->withCount([
+            'appliedJobs' => function ($q) {
+                $q->where('status', 'approved');
+            },
+            'categories as children_count' // count child categories for each parent
+        ])
+        ->with('categories'); // eager load children
 
-         // Filters
-         if ($request->has('name')) {
-             $query->where('name', 'like', '%' . $request->name . '%');
-         }
+    // Filters
+    if ($request->has('name')) {
+        $query->where('name', 'like', '%' . $request->name . '%');
+    }
 
-         if ($request->has('status')) {
-             $query->where('status', $request->status);
-         }
+    if ($request->has('status')) {
+        $query->where('status', $request->status);
+    }
 
-         // Only fetch top-level parents
-         $query->whereNull('parent_id')->latest();
+    // Only fetch parent categories
+    $query->whereNull('parent_id')->latest();
 
-         if (auth('admin')->check()) {
-             $perPage = $request->input('per_page', 10);
-             $jobCategories = $query->paginate($perPage);
-         } else {
-             $jobCategories = $query->get();
-         }
+    // Pagination for admin, otherwise get all
+    if (auth('admin')->check()) {
+        $perPage = $request->input('per_page', 10);
+        $jobCategories = $query->paginate($perPage);
+    } else {
+        $jobCategories = $query->get();
+    }
 
-         return response()->json($jobCategories, 200);
-     }
+    // Total stats
+    $totalParents = JobCategory::whereNull('parent_id')->count();
+    $totalChildren = JobCategory::whereNotNull('parent_id')->count();
+    $totalCategories = JobCategory::count();
+
+    return response()->json([
+        'totals' => [
+            'industries' => $totalParents,
+            'categories' => $totalChildren,
+            'total' => $totalCategories,
+        ],
+        'data' => $jobCategories
+    ], 200);
+}
+
 
 
     public function getJobCategories(Request $request)

@@ -204,4 +204,37 @@ class JobSeeker extends Authenticatable
 
 
 
+
+
+
+    // Applied jobs of type 'waiting_list'
+    public function waitingLists()
+    {
+        return $this->hasMany(AppliedJob::class, 'job_seeker_id')
+            ->where('job_type', 'waiting_list');
+    }
+
+    // Applied jobs of type 'hiring_request_apply'
+    public function jobApplications()
+    {
+        return $this->hasMany(AppliedJob::class, 'job_seeker_id')
+            ->where('job_type', 'hiring_request_apply');
+    }
+
+    // Applied jobs of type 'regular_job_apply'
+    public function regularAppliedJobs()
+    {
+        return $this->hasMany(AppliedJob::class, 'job_seeker_id')
+            ->where('job_type', 'regular_job_apply');
+    }
+
+
+
+
+
+
+
+
+
+
 }
