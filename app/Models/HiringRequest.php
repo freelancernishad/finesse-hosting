@@ -83,7 +83,7 @@ class HiringRequest extends Model
             ->withTimestamps();
     }
 
-    public function AssignedjobSeekers()
+    public function AssignedJobSeekers()
     {
         return $this->belongsToMany(JobSeeker::class, 'hiring_request_job_seeker', 'hiring_request_id', 'job_seeker_id')
             ->withPivot('hourly_rate', 'total_hours', 'total_amount')
