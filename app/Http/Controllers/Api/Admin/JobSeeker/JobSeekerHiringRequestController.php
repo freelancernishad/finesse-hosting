@@ -28,8 +28,8 @@ public function index(Request $request)
     $sortOrder = $request->input('sort_order', 'desc');
 
     $query = HiringRequest::with([
-        'AssignedJobSeekers.user' => function ($query) {
-            $query->select('job_seekers.id', 'users.name as job_seeker_name', 'job_seekers.member_id')
+        'AssignedJobSeekers' => function ($query) {
+            $query->select('job_seekers.id', 'users.name as job_seeker_name', 'users.name as name', 'users.email as email', 'job_seekers.member_id')
                 ->join('users', 'users.id', '=', 'job_seekers.user_id')
                 ->withPivot('hourly_rate', 'total_hours', 'total_amount');
         }
