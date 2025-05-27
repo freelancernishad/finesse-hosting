@@ -29,7 +29,7 @@ public function index(Request $request)
 
     $query = HiringRequest::with([
         'AssignedJobSeekers' => function ($query) {
-            $query->select('job_seekers.id', 'users.name as job_seeker_name', 'users.name as name', 'users.email as email', 'job_seekers.member_id')
+            $query->select('job_seekers.id', 'users.name as job_seeker_name', 'users.email as job_seeker_email', 'job_seekers.member_id')
                 ->join('users', 'users.id', '=', 'job_seekers.user_id')
                 ->withPivot('hourly_rate', 'total_hours', 'total_amount');
         }
