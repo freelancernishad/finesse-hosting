@@ -160,7 +160,7 @@ public function show($id)
             'job_seekers.*.hourly_rate' => 'required|numeric|min:0',
             'job_seekers.*.total_hours' => 'required|integer|min:0',
             'job_seekers.*.total_amount' => 'required|numeric|min:0',
-            'job_seekers.*.job_application_id' => 'required|exists:applied_jobs,id',
+            'job_seekers.*.job_application_id' => 'nullable|exists:applied_jobs,id',
         ]);
 
         if ($validator->fails()) {
