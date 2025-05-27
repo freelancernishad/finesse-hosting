@@ -32,7 +32,7 @@ public function index(Request $request)
             $query->select('job_seekers.id', 'users.name as job_seeker_name', 'job_seekers.member_id')
                 ->join('users', 'users.id', '=', 'job_seekers.user_id')
                 ->withPivot('hourly_rate', 'total_hours', 'total_amount');
-        }
+        },'user'
     ]);
 
     if (!empty($status)) {

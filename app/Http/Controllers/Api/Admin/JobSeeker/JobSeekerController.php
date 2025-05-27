@@ -43,6 +43,7 @@ class JobSeekerController extends Controller
               'join_date' => $jobSeeker->join_date,
               'average_review_rating' => $jobSeeker->average_review_rating,
               'total_reviews' => $jobSeeker->total_reviews,
+              'user' => $jobSeeker->user, // Include user details
 
               'is_assigned_quote' => $jobSeeker->HiringRequests->isNotEmpty(), // Check if assigned any quote
               'assigned_quotes' => $jobSeeker->HiringRequests->map(function ($quote) {
@@ -118,7 +119,7 @@ class JobSeekerController extends Controller
 {
     $jobSeeker = JobSeeker::with(['HiringRequests' => function ($query) {
         $query->whereIn('status', ['assigned', 'completed']); // Fetch both assigned and completed quotes
-    }])->findOrFail($id);
+    },'user'])->findOrFail($id);
 
     return response()->json([
         'id' => $jobSeeker->id,
@@ -145,6 +146,7 @@ class JobSeekerController extends Controller
         'approved_job_roles' => $jobSeeker->approved_job_roles,
         'last_review' => $jobSeeker->last_review,
         'applied_jobs' => $jobSeeker->applied_jobs,
+        'user' => $jobSeeker->user,
         'is_assigned_quote' => $jobSeeker->HiringRequests->where('status', 'assigned')->isNotEmpty(),
         'assigned_quotes' => $jobSeeker->HiringRequests->where('status', 'assigned')->values(),
         'completed_quotes' => $jobSeeker->HiringRequests->where('status', 'completed')->values(),
