@@ -196,7 +196,8 @@ public function show($id)
         }
 
         // Sync the job seekers with pivot data
-        $hiringRequest->jobSeekers()->sync($jobSeekerData);
+        // $hiringRequest->jobSeekers()->sync($jobSeekerData);
+        $hiringRequest->jobSeekers()->syncWithoutDetaching($jobSeekerData);
 
         // Update HiringRequest status
         $hiringRequest->status = 'assigned';
@@ -211,7 +212,7 @@ public function show($id)
 
         return response()->json([
             'message' => 'JobSeekers assigned and applications approved successfully!',
-            'request_quote' => $hiringRequest
+            'hiring_request' => $hiringRequest
         ]);
     }
 
