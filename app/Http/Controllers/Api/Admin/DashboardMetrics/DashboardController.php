@@ -37,10 +37,18 @@ class DashboardController extends Controller
             'rejected' => $jobApplicationStatusesRaw->get('rejected', 0),
         ];
 
-        $HiringRequestStatuses = HiringRequest::selectRaw('status, count(*) as count')
+        $HiringRequestStatusesRaw = HiringRequest::selectRaw('status, count(*) as count')
             ->groupBy('status')
             ->get()
             ->pluck('count', 'status');
+
+        $HiringRequestStatuses = [
+            'pending'    => $HiringRequestStatusesRaw->get('pending', 0),
+            'confirmed'  => $HiringRequestStatusesRaw->get('confirmed', 0),
+            'assigned'   => $HiringRequestStatusesRaw->get('assigned', 0),
+            'completed'  => $HiringRequestStatusesRaw->get('completed', 0),
+            'canceled'   => $HiringRequestStatusesRaw->get('canceled', 0),
+        ];
 
         return response()->json([
             'total_counts' => [
