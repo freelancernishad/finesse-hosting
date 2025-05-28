@@ -26,10 +26,16 @@ class DashboardController extends Controller
         $recentHiringRequests = HiringRequest::where('created_at', '>=', Carbon::now()->subDays(7))->count();
 
         // Status breakdowns
-        $jobApplicationStatuses = AppliedJob::selectRaw('status, count(*) as count')
+        $jobApplicationStatusesRaw = AppliedJob::selectRaw('status, count(*) as count')
             ->groupBy('status')
             ->get()
             ->pluck('count', 'status');
+
+        $jobApplicationStatuses = [
+            'pending' => $jobApplicationStatusesRaw->get('pending', 0),
+            'approved' => $jobApplicationStatusesRaw->get('approved', 0),
+            'rejected' => $jobApplicationStatusesRaw->get('rejected', 0),
+        ];
 
         $HiringRequestStatuses = HiringRequest::selectRaw('status, count(*) as count')
             ->groupBy('status')
@@ -50,7 +56,7 @@ class DashboardController extends Controller
                 'time_period' => 'last_7_days',
             ],
             'status_breakdowns' => [
-                'job_applications' => $jobApplicationStatuses,
+                'waiting_requets' => $jobApplicationStatuses,
                 'hiring_requests' => $HiringRequestStatuses,
             ]
         ]);

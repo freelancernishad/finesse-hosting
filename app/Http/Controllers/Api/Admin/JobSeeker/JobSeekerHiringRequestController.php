@@ -217,6 +217,44 @@ public function show($id)
     }
 
 
+    public function releaseJobSeeker(Request $request, $hiringRequestId, $jobSeekerId)
+    {
+        $hiringRequest = HiringRequest::find($hiringRequestId);
+
+        if (!$hiringRequest) {
+            return response()->json(['message' => 'HiringRequest not found'], 404);
+        }
+
+        // Check if the job seeker is attached to the hiring request
+        if (!$hiringRequest->jobSeekers()->where('job_seeker_id', $jobSeekerId)->exists()) {
+            return response()->json(['message' => 'JobSeeker not assigned to this HiringRequest'], 404);
+        }
+
+        // Detach the job seeker
+        $hiringRequest->jobSeekers()->detach($jobSeekerId);
+
+        // Optionally update the status of the applied job back to 'pending' or 'released'
+        $appliedJob = AppliedJob::where('hiring_request_id', $hiringRequestId)
+                                ->where('job_seeker_id', $jobSeekerId)
+                                ->first();
+
+        if ($appliedJob) {
+            $appliedJob->status = 'released'; // or 'pending'
+            $appliedJob->save();
+        }
+
+        return response()->json([
+            'message' => 'JobSeeker released from HiringRequest successfully.',
+        ]);
+    }
+
+
+
+
+
+
+
+
     // Update status and assign JobSeekers if status is 'assigned'
     public function updateStatus(Request $request, $id)
     {

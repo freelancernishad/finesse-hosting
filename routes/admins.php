@@ -124,6 +124,10 @@ Route::prefix('admin')->group(function () {
             Route::get('hiring-request', [JobSeekerHiringRequestController::class, 'index']);
             Route::get('hiring-request/{id}', [JobSeekerHiringRequestController::class, 'show']);
             Route::post('hiring-request/{id}/assign-job-seekers', [JobSeekerHiringRequestController::class, 'assignJobSeekers']);
+            Route::delete('/hiring-requests/{hiringRequestId}/release-jobseeker/{jobSeekerId}', [JobSeekerHiringRequestController::class, 'releaseJobSeeker']);
+
+
+
             Route::put('hiring-request/{id}/update-status', [JobSeekerHiringRequestController::class, 'updateStatus']);
             Route::post('hiring-request/{id}/confirm-request', [JobSeekerHiringRequestController::class, 'confirmQuote']);
 
