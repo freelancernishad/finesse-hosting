@@ -64,7 +64,7 @@ class DashboardController extends Controller
                 'time_period' => 'last_7_days',
             ],
             'status_breakdowns' => [
-                'waiting_requets' => $jobApplicationStatuses,
+                'waiting_request' => $jobApplicationStatuses,
                 'hiring_requests' => $HiringRequestStatuses,
             ]
         ]);
