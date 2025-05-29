@@ -79,16 +79,26 @@ class HiringRequest extends Model
     public function jobSeekers()
     {
         return $this->belongsToMany(JobSeeker::class, 'hiring_request_job_seeker', 'hiring_request_id', 'job_seeker_id')
-            ->withPivot('hourly_rate', 'total_hours', 'total_amount')
+            ->withPivot('hourly_rate', 'total_hours', 'total_amount','status')
             ->withTimestamps();
     }
 
-    public function AssignedJobSeekers()
+    public function assignedJobSeekers()
+    {
+        return $this->belongsToMany(JobSeeker::class, 'hiring_request_job_seeker', 'hiring_request_id', 'job_seeker_id')
+            ->withPivot('hourly_rate', 'total_hours', 'total_amount',)
+            ->wherePivot('status', 'assigned') // <-- filter only assigned
+            ->withTimestamps();
+    }
+
+    public function releasedJobSeekers()
     {
         return $this->belongsToMany(JobSeeker::class, 'hiring_request_job_seeker', 'hiring_request_id', 'job_seeker_id')
             ->withPivot('hourly_rate', 'total_hours', 'total_amount')
+            ->wherePivot('status', 'released') // <-- filter only assigned
             ->withTimestamps();
     }
+
 
     public function review()
     {
@@ -138,9 +148,11 @@ class HiringRequest extends Model
         $assignedJobSeekerIds = DB::table('hiring_request_job_seeker')
             ->join('hiring_requests', 'hiring_request_job_seeker.hiring_request_id', '=', 'hiring_requests.id')
             ->where('hiring_requests.status', '!=', 'completed')
+            ->where('hiring_request_job_seeker.status', 'assigned') // <-- added filter
             ->pluck('job_seeker_id')
             ->unique()
             ->toArray();
+
 
         Log::info('Assigned Job Seeker IDs:', $assignedJobSeekerIds);
 

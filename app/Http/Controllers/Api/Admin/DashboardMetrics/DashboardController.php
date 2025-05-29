@@ -114,8 +114,10 @@ $topCategories = JobCategory::select([
         $assignedJobSeekerIds = \DB::table('hiring_request_job_seeker')
             ->join('hiring_requests', 'hiring_request_job_seeker.hiring_request_id', '=', 'hiring_requests.id')
             ->where('hiring_requests.status', '!=', 'completed')
+            ->where('hiring_request_job_seeker.status', 'assigned')
             ->pluck('job_seeker_id')
             ->toArray();
+
 
         // Total job seekers count
         $totalJobSeekers = JobSeeker::count();

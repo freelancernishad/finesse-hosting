@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Stripe\Checkout\Session;
 use App\Models\HiringRequest;
 use App\Mail\ReviewRequestMail;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
@@ -118,7 +119,34 @@ public function show($id)
                 'full_address' => $user->full_address,
                 'profile' => $employer, // You may format this as needed too
             ],
-            'assigned_job_seekers' => $hiringRequest->jobSeekers->map(function ($js) {
+            'assigned_job_seekers' => $hiringRequest->assignedJobSeekers->map(function ($js) {
+                return [
+                    'id' => $js->id,
+                    'name' => $js->user->name ?? null,
+                    'email' => $js->user->email ?? null,
+                    'member_id' => $js->member_id,
+                    'average_review_rating' => $js->average_review_rating,
+                    'review_summary' => $js->review_summary,
+                    'approved_job_roles' => $js->approved_job_roles,
+                    'pivot' => $js->pivot,
+                    'applied_jobs' => $js->applied_jobs,
+                    'user' => [
+                        'id' => $js->user->id ?? null,
+                        'name' => $js->user->name ?? null,
+                        'email' => $js->user->email ?? null,
+                        'active_profile' => $js->user->active_profile ?? null,
+                        'profile_picture' => $js->user->profile_picture ?? null,
+                        'country' => $js->user->country ?? null,
+                        'state' => $js->user->state ?? null,
+                        'city' => $js->user->city ?? null,
+                        'region' => $js->user->region ?? null,
+                        'street_address' => $js->user->street_address ?? null,
+                        'zip_code' => $js->user->zip_code ?? null,
+                        'full_address' => $js->user->full_address ?? null,
+                    ]
+                ];
+            }),
+            'released_job_seekers' => $hiringRequest->releasedJobSeekers->map(function ($js) {
                 return [
                     'id' => $js->id,
                     'name' => $js->user->name ?? null,
@@ -197,7 +225,25 @@ public function show($id)
 
         // Sync the job seekers with pivot data
         // $hiringRequest->jobSeekers()->sync($jobSeekerData);
-        $hiringRequest->jobSeekers()->syncWithoutDetaching($jobSeekerData);
+        // First, update status to 'assigned' for job seekers that are already attached but have status 'released'
+        foreach (array_keys($jobSeekerData) as $jobSeekerId) {
+            $pivot = $hiringRequest->jobSeekers()->wherePivot('job_seeker_id', $jobSeekerId)->first();
+          
+            if ($pivot && $pivot->pivot->status == 'released') {
+                $hiringRequest->jobSeekers()->updateExistingPivot($jobSeekerId, [
+                    'status' => 'assigned',
+                    'hourly_rate' => $jobSeekerData[$jobSeekerId]['hourly_rate'],
+                    'total_hours' => $jobSeekerData[$jobSeekerId]['total_hours'],
+                    'total_amount' => $jobSeekerData[$jobSeekerId]['total_amount'],
+                ]);
+                unset($jobSeekerData[$jobSeekerId]);
+            }
+        }
+
+        // Attach or update the rest (new or already assigned)
+        if (!empty($jobSeekerData)) {
+            $hiringRequest->jobSeekers()->syncWithoutDetaching($jobSeekerData);
+        }
 
         // Update HiringRequest status
         $hiringRequest->status = 'assigned';
@@ -230,21 +276,26 @@ public function show($id)
             return response()->json(['message' => 'JobSeeker not assigned to this HiringRequest'], 404);
         }
 
-        // Detach the job seeker
-        $hiringRequest->jobSeekers()->detach($jobSeekerId);
+        // Update the pivot status to 'released'
+        $hiringRequest->jobSeekers()->updateExistingPivot($jobSeekerId, ['status' => 'released']);
 
-        // Optionally update the status of the applied job back to 'pending' or 'released'
-        $appliedJob = AppliedJob::where('hiring_request_id', $hiringRequestId)
-                                ->where('job_seeker_id', $jobSeekerId)
-                                ->first();
+        // Check if there are still any assigned job seekers left for this hiring request
+        $hasAssigned = $hiringRequest->jobSeekers()->wherePivot('status', 'assigned')->exists();
 
-        if ($appliedJob) {
-            $appliedJob->status = 'released'; // or 'pending'
-            $appliedJob->save();
+        if (!$hasAssigned) {
+            // Get the AppliedJob related to this post job and job seeker
+            $appliedJob = AppliedJob::whereHas('postJob', function ($query) use ($hiringRequestId) {
+                $query->where('hiring_request_id', $hiringRequestId);
+            })->where('job_seeker_id', $jobSeekerId)->first();
+
+            if ($appliedJob) {
+                $appliedJob->status = 'released';
+                $appliedJob->save();
+            }
         }
 
         return response()->json([
-            'message' => 'JobSeeker released from HiringRequest successfully.',
+            'message' => 'JobSeeker status updated to released successfully.',
         ]);
     }
 
@@ -320,6 +371,7 @@ public function show($id)
             $assignedJobSeekerIds = \DB::table('hiring_request_job_seeker')
                 ->join('hiring_requests', 'hiring_request_job_seeker.hiring_request_id', '=', 'hiring_requests.id')
                 ->where('hiring_requests.status', '!=', 'completed')
+                ->where('hiring_request_job_seeker.status', 'assigned') // <-- added this line
                 ->pluck('job_seeker_id')
                 ->toArray();
 

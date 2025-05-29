@@ -195,12 +195,13 @@ class JobSeeker extends Authenticatable
 
 
 
-    public function HiringRequests()
-    {
-        return $this->belongsToMany(HiringRequest::class, 'hiring_request_job_seeker', 'job_seeker_id', 'hiring_request_id')
+public function HiringRequests()
+{
+    return $this->belongsToMany(HiringRequest::class, 'hiring_request_job_seeker', 'job_seeker_id', 'hiring_request_id')
         ->withPivot('hourly_rate', 'total_hours', 'total_amount')
+        ->wherePivot('status', 'assigned') // <-- filter only assigned
         ->withTimestamps();
-    }
+}
 
 
 
