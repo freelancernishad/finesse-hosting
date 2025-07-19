@@ -190,13 +190,27 @@ class JobCategoryController extends Controller
      */
     public function deleteJobCategory($category_id)
     {
-        $jobCategory = JobCategory::findOrFail($category_id);
+        $jobCategory = JobCategory::with('categories')->findOrFail($category_id);
+
+        // Recursively delete child categories
+        $this->deleteChildCategories($jobCategory);
+
+        // Finally delete the parent category
         $jobCategory->delete();
 
         return response()->json([
             'status' => true,
-            'message' => 'Job category deleted successfully!',
+            'message' => 'Job category and its sub-categories deleted successfully!',
         ], 200);
+    }
+
+    protected function deleteChildCategories($jobCategory)
+    {
+        foreach ($jobCategory->categories as $childCategory) {
+            // Recursive delete
+            $this->deleteChildCategories($childCategory);
+            $childCategory->delete();
+        }
     }
 
     /**
