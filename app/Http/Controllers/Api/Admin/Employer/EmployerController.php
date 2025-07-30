@@ -133,10 +133,16 @@ class EmployerController extends Controller
     public function destroy($id)
     {
         $employer = Employer::findOrFail($id);
+
+        // Delete associated user if exists
+        if ($employer->user) {
+            $employer->user->delete();
+        }
+
         $employer->delete();
 
         return response()->json([
-            'message' => 'Employer deleted successfully.'
+            'message' => 'Employer and associated user deleted successfully.'
         ]);
     }
 }

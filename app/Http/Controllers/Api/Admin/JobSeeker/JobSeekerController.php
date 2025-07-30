@@ -216,10 +216,16 @@ class JobSeekerController extends Controller
     public function destroy($id)
     {
         $jobSeeker = JobSeeker::findOrFail($id);
+
+        // Delete associated user if exists
+        if ($jobSeeker->user) {
+            $jobSeeker->user->delete();
+        }
+
         $jobSeeker->delete();
 
         return response()->json([
-            'message' => 'JobSeeker deleted successfully.'
+            'message' => 'JobSeeker and associated user deleted successfully.'
         ], 200);
     }
 
