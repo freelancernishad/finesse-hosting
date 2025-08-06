@@ -42,7 +42,7 @@ class JobCategoryController extends Controller
 
     // Pagination for admin, otherwise get all
     if (auth('admin')->check()) {
-        $perPage = $request->input('per_page', 10);
+        $perPage = $request->input('per_page', 1000);
         $jobCategories = $query->paginate($perPage);
     } else {
         $jobCategories = $query->get();
