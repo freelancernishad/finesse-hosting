@@ -29,7 +29,7 @@ class JobSeekerController extends Controller
 
         // Retrieve paginated job seekers with the latest ones first
         $jobSeekers = JobSeeker::with(['HiringRequests' => function ($query) {
-           $query->where('status', 'assigned'); // Only fetch assigned quotes
+        //    $query->where('status', 'assigned');
         }, 'user'])->orderBy('created_at', 'desc')->paginate($perPage);
 
         // Transform response to include assigned quote details
