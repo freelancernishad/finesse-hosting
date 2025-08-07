@@ -23,7 +23,7 @@ class JobSeekerController extends Controller
             // Admin is authenticated, fetch JobSeeker by ID
             $jobSeeker = JobSeeker::with([
             'HiringRequests' => function ($query) {
-                $query->whereIn('status', ['assigned', 'completed']); // Fetch both assigned and completed quotes
+                // $query->whereIn('status', ['assigned', 'completed']); 
             },
             'user',
             'waitingLists',
