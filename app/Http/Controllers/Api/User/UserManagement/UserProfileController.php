@@ -376,9 +376,17 @@ class UserProfileController extends Controller
 
     public function upload(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+            'status' => false,
+            'message' => 'Validation error',
+            'errors' => $validator->errors(),
+            ], 422);
+        }
 
         $user = Auth::user();
 
