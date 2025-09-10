@@ -199,6 +199,9 @@ class UserProfileController extends Controller
                 // 👇 Add validation for on_call_status
                 'on_call_status' => 'nullable|in:Stand by,On-call',
 
+                // Each certificate file validation
+                'certificate.*.file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+
             ]);
 
             if ($validator->fails()) {
@@ -232,6 +235,33 @@ class UserProfileController extends Controller
                 $resumePath = $request->file('resume')->store('resumes', 'public');
                 $profile->resume = $resumePath;
             }
+
+
+            // === Certificate handling ===
+            $certificates = $request->input('certificate', []);
+            $finalCertificates = [];
+
+            foreach ($certificates as $index => $cert) {
+                $filePath = null;
+
+                // Check if this certificate has a file
+                if ($request->hasFile("certificate.$index.file")) {
+                    $file = $request->file("certificate.$index.file");
+                    $filePath = $file->store('certificates', 'public');
+                }
+
+                // Reorder fields: name → certified_from → year → file
+                $finalCertificates[] = [
+                    'name' => $cert['name'] ?? null,
+                    'certified_from' => $cert['certified_from'] ?? null,
+                    'year' => $cert['year'] ?? null,
+                    'file' => $filePath,
+                ];
+            }
+
+            $profile->certificate = $finalCertificates;
+
+
 
 
             $profile->save();
