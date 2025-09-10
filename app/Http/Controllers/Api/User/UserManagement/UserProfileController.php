@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\User\UserManagement;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -237,29 +238,37 @@ class UserProfileController extends Controller
             }
 
 
-            // === Certificate handling ===
-            $certificates = $request->input('certificate', []);
-            $finalCertificates = [];
+        // === Certificate handling ===
+        $certificates = $request->input('certificate', []);
+        $finalCertificates = [];
 
-            foreach ($certificates as $index => $cert) {
-                $filePath = null;
+        foreach ($certificates as $index => $cert) {
+            $filePath = null;
 
-                // Check if this certificate has a file
-                if ($request->hasFile("certificate.$index.file")) {
-                    $file = $request->file("certificate.$index.file");
-                    $filePath = $file->store('certificates', 'public');
-                }
+            // Check if this certificate has a file
+            if ($request->hasFile("certificate.$index.file")) {
+                $file = $request->file("certificate.$index.file");
+                $filePath = $file->store('certificates', 'public');
 
-                // Reorder fields: name → certified_from → year → file
-                $finalCertificates[] = [
-                    'name' => $cert['name'] ?? null,
-                    'certified_from' => $cert['certified_from'] ?? null,
-                    'year' => $cert['year'] ?? null,
-                    'file' => $filePath,
-                ];
+                // Log the uploaded file info
+                Log::info("Certificate file uploaded", [
+                    'certificate_index' => $index,
+                    'certificate_name' => $cert['name'] ?? null,
+                    'file_path' => $filePath,
+                    'user_id' => $user->id,
+                ]);
             }
 
-            $profile->certificate = $finalCertificates;
+            // Reorder fields: name → certified_from → year → file
+            $finalCertificates[] = [
+                'name' => $cert['name'] ?? null,
+                'certified_from' => $cert['certified_from'] ?? null,
+                'year' => $cert['year'] ?? null,
+                'file' => $filePath,
+            ];
+        }
+
+        $profile->certificate = $finalCertificates;
 
 
 
