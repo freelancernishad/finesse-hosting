@@ -2,7 +2,8 @@
 
 use Illuminate\Support\Facades\Storage;
 
-
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 
 
 /**
@@ -85,3 +86,9 @@ function readFileFromProtected($filename)
     // Return file as download
     return Storage::disk('protected')->download($filePath);
 }
+
+
+
+
+
+

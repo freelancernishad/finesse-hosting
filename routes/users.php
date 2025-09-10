@@ -38,6 +38,9 @@ Route::prefix('user')->group(function () {
 
 
 
+        Route::post('/certificate/upload', [UserProfileController::class, 'upload']);
+
+
 
         Route::get('/employer/overview', [UserProfileController::class, 'EmployerOverview']);
 

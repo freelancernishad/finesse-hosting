@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class UserProfileController extends Controller
 {
@@ -200,8 +201,6 @@ class UserProfileController extends Controller
                 // 👇 Add validation for on_call_status
                 'on_call_status' => 'nullable|in:Stand by,On-call',
 
-                // Each certificate file validation
-                'certificate.*.file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
 
             ]);
 
@@ -236,39 +235,6 @@ class UserProfileController extends Controller
                 $resumePath = $request->file('resume')->store('resumes', 'public');
                 $profile->resume = $resumePath;
             }
-
-
-        // === Certificate handling ===
-        $certificates = $request->input('certificate', []);
-        $finalCertificates = [];
-
-        foreach ($certificates as $index => $cert) {
-            $filePath = null;
-
-            // Check if this certificate has a file
-            if ($request->hasFile("certificate.$index.file")) {
-                $file = $request->file("certificate.$index.file");
-                $filePath = $file->store('certificates', 'public');
-
-                // Log the uploaded file info
-                Log::info("Certificate file uploaded", [
-                    'certificate_index' => $index,
-                    'certificate_name' => $cert['name'] ?? null,
-                    'file_path' => $filePath,
-                    'user_id' => $user->id,
-                ]);
-            }
-
-            // Reorder fields: name → certified_from → year → file
-            $finalCertificates[] = [
-                'name' => $cert['name'] ?? null,
-                'certified_from' => $cert['certified_from'] ?? null,
-                'year' => $cert['year'] ?? null,
-                'file' => $filePath,
-            ];
-        }
-
-        $profile->certificate = $finalCertificates;
 
 
 
@@ -406,6 +372,47 @@ class UserProfileController extends Controller
             'profile_picture' => $filePath
         ]);
     }
+
+
+    public function upload(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+        ]);
+
+        $user = Auth::user();
+
+        if (!$user || !$user->jobSeeker) {
+            return response()->json([
+                'message' => 'JobSeeker profile not found for authenticated user'
+            ], 404);
+        }
+
+        $file = $request->file('file');
+        $memberId = $user->jobSeeker->member_id;
+
+        $path = uploadFileToS3($file, "certificates/{$memberId}");
+
+        // Log uploaded file info
+        Log::info("Certificate file uploaded", [
+            'member_id' => $memberId,
+            'file_name' => $file->getClientOriginalName(),
+            'stored_path' => $path,
+            'user_id' => $user->id,
+        ]);
+
+        // Return full URL
+        $fileUrl = $path;
+
+        return response()->json([
+            'message' => 'File uploaded successfully',
+            'file_url' => $fileUrl,
+        ]);
+    }
+
+
+
+
 
 
 }
