@@ -48,6 +48,8 @@ class JobApplicationController extends Controller
         'area' => 'required|array|min:1',
         'area.*' => 'string|max:255',
         'job_category_id' => 'required|exists:job_categories,id',
+        'certificate' => 'nullable|array',
+
     ]);
 
     if ($validator->fails()) {
@@ -87,6 +89,7 @@ class JobApplicationController extends Controller
         'category' => $jobCategory->name,
         'job_category_id' => $jobCategory->id,
         'job_seeker_id' => $jobSeeker->id,
+        'certificate' => $request->certificate ?? $jobSeeker->certificate,
         'job_type' => 'waiting_list', // Set job_type to 'waiting_list'
     ]);
 

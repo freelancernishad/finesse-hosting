@@ -27,6 +27,7 @@ class AppliedJob extends Model
     // Ensure 'area' is cast to array when accessed
     protected $casts = [
         'area' => 'array',
+        'certificate' => 'array',
     ];
 
 
