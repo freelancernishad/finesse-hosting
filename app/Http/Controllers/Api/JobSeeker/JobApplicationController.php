@@ -380,7 +380,7 @@ public function getPostedJobApplications(Request $request)
     $perPage = $request->query('per_page', 10);
     $postJobId = $request->query('post_job_id');
 
-    $query = AppliedJob::where('job_seeker_id', $jobSeeker->id)
+    $query = AppliedJob::with('postJob')->where('job_seeker_id', $jobSeeker->id)
                        ->where('job_type', 'hiring_request_apply') // Filter by job_type 'hiring_request_apply'
                        ->whereNotNull('post_job_id') // Ensure post_job_id is not null
                        ->where('post_job_id', '!=', '') // Ensure post_job_id is not an empty string
