@@ -356,44 +356,44 @@ public function applyForPostedJob(Request $request)
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-public function getPostedJobApplications(Request $request)
-{
-    $user = Auth::guard('api')->user();
+    public function getPostedJobApplications(Request $request)
+    {
+        $user = Auth::guard('api')->user();
 
-    if (!$user) {
-        return response()->json(['status' => false, 'message' => 'Unauthorized access.'], 401);
+        if (!$user) {
+            return response()->json(['status' => false, 'message' => 'Unauthorized access.'], 401);
+        }
+
+        if ($user->active_profile !== 'JobSeeker') {
+            return response()->json([
+                'status' => false,
+                'message' => 'You must have an active JobSeeker profile to access this.',
+            ], 403);
+        }
+
+        $jobSeeker = $user->jobSeeker;
+
+        if (!$jobSeeker) {
+            return response()->json(['status' => false, 'message' => 'JobSeeker profile not found.'], 404);
+        }
+
+        $perPage = $request->query('per_page', 10);
+        $postJobId = $request->query('post_job_id');
+
+        $query = AppliedJob::with('postJob')->where('job_seeker_id', $jobSeeker->id)
+                        ->where('job_type', 'hiring_request_apply') // Filter by job_type 'hiring_request_apply'
+                        ->whereNotNull('post_job_id') // Ensure post_job_id is not null
+                        ->where('post_job_id', '!=', '') // Ensure post_job_id is not an empty string
+                        ->latest();
+
+        if (!empty($postJobId)) {
+            $query->where('post_job_id', $postJobId);
+        }
+
+        $applications = $query->paginate($perPage);
+
+        return response()->json($applications, 200);
     }
-
-    if ($user->active_profile !== 'JobSeeker') {
-        return response()->json([
-            'status' => false,
-            'message' => 'You must have an active JobSeeker profile to access this.',
-        ], 403);
-    }
-
-    $jobSeeker = $user->jobSeeker;
-
-    if (!$jobSeeker) {
-        return response()->json(['status' => false, 'message' => 'JobSeeker profile not found.'], 404);
-    }
-
-    $perPage = $request->query('per_page', 10);
-    $postJobId = $request->query('post_job_id');
-
-    $query = AppliedJob::with('postJob')->where('job_seeker_id', $jobSeeker->id)
-                       ->where('job_type', 'hiring_request_apply') // Filter by job_type 'hiring_request_apply'
-                       ->whereNotNull('post_job_id') // Ensure post_job_id is not null
-                       ->where('post_job_id', '!=', '') // Ensure post_job_id is not an empty string
-                       ->latest();
-
-    if (!empty($postJobId)) {
-        $query->where('post_job_id', $postJobId);
-    }
-
-    $applications = $query->paginate($perPage);
-
-    return response()->json($applications, 200);
-}
 
 
 

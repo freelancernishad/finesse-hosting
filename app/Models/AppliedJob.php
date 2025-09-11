@@ -74,6 +74,23 @@ class AppliedJob extends Model
 
     public function postJob()
     {
-        return $this->belongsTo(PostJob::class, 'post_job_id');
+        return $this->belongsTo(PostJob::class, 'post_job_id')->withDefault([
+            'id' => null,
+            'hiring_request_id' => null,
+            'title' => 'N/A',
+            'category' => 'N/A',
+            'model' => 'N/A',
+            'experience' => null,
+            'salary_type' => 'N/A',
+            'min_salary' => '0.00',
+            'max_salary' => '0.00',
+            'location' => 'Not specified',
+            'description' => 'No job details available.',
+            'status' => 'unknown',
+            'created_at' => null,
+            'updated_at' => null,
+            'total_applicant' => 0,
+        ]);
     }
+
 }
