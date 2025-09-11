@@ -89,7 +89,7 @@ class JobApplicationController extends Controller
         'category' => $jobCategory->name,
         'job_category_id' => $jobCategory->id,
         'job_seeker_id' => $jobSeeker->id,
-        'certificate' => $request->certificate ?? $jobSeeker->certificate,
+        'certificate' => $request->certificate,
         'job_type' => 'waiting_list', // Set job_type to 'waiting_list'
     ]);
 
