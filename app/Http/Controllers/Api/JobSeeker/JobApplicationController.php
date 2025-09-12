@@ -180,175 +180,175 @@ class JobApplicationController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-public function applyForPostedJob(Request $request)
-{
-    $user = Auth::guard('api')->user();
+    public function applyForPostedJob(Request $request)
+    {
+        $user = Auth::guard('api')->user();
 
-    if (!$user) {
-        return response()->json(['status' => false, 'message' => 'Unauthorized'], 401);
-    }
+        if (!$user) {
+            return response()->json(['status' => false, 'message' => 'Unauthorized'], 401);
+        }
 
-    if ($user->active_profile !== 'JobSeeker') {
-        return response()->json([
-            'status' => false,
-            'message' => 'You must have an active JobSeeker profile to apply.',
-        ], 403);
-    }
+        if ($user->active_profile !== 'JobSeeker') {
+            return response()->json([
+                'status' => false,
+                'message' => 'You must have an active JobSeeker profile to apply.',
+            ], 403);
+        }
 
-    $validator = Validator::make($request->all(), [
-        'interest_file' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
-        'area' => 'nullable|array',
-        'area.*' => 'string|max:255',
-        'post_job_id' => 'nullable|exists:post_jobs,id',
-        'job_category_id' => 'required_without:post_job_id|nullable|exists:job_categories,id',
+        $validator = Validator::make($request->all(), [
+            'interest_file' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
+            'area' => 'nullable|array',
+            'area.*' => 'string|max:255',
+            'post_job_id' => 'nullable|exists:post_jobs,id',
+            'job_category_id' => 'required_without:post_job_id|nullable|exists:job_categories,id',
 
-        // Fields for user and jobSeeker fallback
-        'country' => 'nullable|string|max:255',
-        'city' => 'nullable|string|max:255',
-        'zip_code' => 'nullable|string|max:20',
-        'street_address' => 'nullable|string|max:255',
-        'phone' => 'nullable|string|max:20',
-        'date_of_birth' => 'nullable|date',
+            // Fields for user and jobSeeker fallback
+            'country' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:255',
+            'zip_code' => 'nullable|string|max:20',
+            'street_address' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'date_of_birth' => 'nullable|date',
 
-        // Optional applied job fields
-        'describe_yourself' => 'nullable|string',
-        'resume' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png',
-        'cover_letter' => 'nullable|string',
-        'experience' => 'nullable|string',
-        'preferred_contact_method' => 'nullable|in:email,phone',
-        'on_call_status' => 'nullable|in:Stand by,On-call',
-
-
-        'certificate' => 'nullable|array',
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json([
-            'status' => false,
-            'message' => 'Validation error',
-            'errors' => $validator->errors(),
-        ], 422);
-    }
-
-    $postJobId = $request->post_job_id;
+            // Optional applied job fields
+            'describe_yourself' => 'nullable|string',
+            'resume' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png',
+            'cover_letter' => 'nullable|string',
+            'experience' => 'nullable|string',
+            'preferred_contact_method' => 'nullable|in:email,phone',
+            'on_call_status' => 'nullable|in:Stand by,On-call',
 
 
-
-    $jobCategoryId = $request->job_category_id;
-
-    if(!$request->job_category_id){
-        $getPostJob = PostJob::find($postJobId);
-        $jobCategory = $getPostJob->category;
-        $category = $jobCategory;
-        $jobCategoryId = JobCategory::where('name', $jobCategory)->first()->id;
-    }else{
-        $jobCategory = JobCategory::find($jobCategoryId)->name;
-        $category = $jobCategory;
-    }
-
-
-    // Prevent duplicate application for same job post
-    $alreadyApplied = AppliedJob::where('post_job_id', $postJobId)
-        ->where('job_category_id', $jobCategoryId)
-        ->where('job_seeker_id', optional($user->jobSeeker)->id)
-        ->exists();
-
-    if ($alreadyApplied) {
-        return response()->json([
-            'status' => false,
-            'message' => 'You have already applied for this job post in this category.',
-        ], 403);
-    }
-
-    // === STEP 1: Ensure User fields are filled (only if null or blank) ===
-    $userNeedsUpdate = false;
-
-    if (empty($user->country) && $request->filled('country')) {
-        $user->country = $request->country;
-        $userNeedsUpdate = true;
-    }
-    if (empty($user->city) && $request->filled('city')) {
-        $user->city = $request->city;
-        $userNeedsUpdate = true;
-    }
-    if (empty($user->zip_code) && $request->filled('zip_code')) {
-        $user->zip_code = $request->zip_code;
-        $userNeedsUpdate = true;
-    }
-    if (empty($user->street_address) && $request->filled('street_address')) {
-        $user->street_address = $request->street_address;
-        $userNeedsUpdate = true;
-    }
-
-    if ($userNeedsUpdate) {
-        $user->save();
-    }
-
-    // === STEP 2: Ensure JobSeeker exists and has necessary data ===
-    $jobSeeker = $user->jobSeeker;
-
-    if (!$jobSeeker) {
-        $jobSeeker = $user->jobSeeker()->create([
-            'phone_number' => $request->phone
+            'certificate' => 'nullable|array',
         ]);
-    } else {
-        $jobSeekerNeedsUpdate = false;
 
-        if (empty($jobSeeker->phone_number) && $request->filled('phone')) {
-            $jobSeeker->phone_number = $request->phone;
-            $jobSeekerNeedsUpdate = true;
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $postJobId = $request->post_job_id;
+
+
+
+        $jobCategoryId = $request->job_category_id;
+
+        if(!$request->job_category_id){
+            $getPostJob = PostJob::find($postJobId);
+            $jobCategory = $getPostJob->category;
+            $category = $jobCategory;
+            $jobCategoryId = JobCategory::where('name', $jobCategory)->first()->id;
+        }else{
+            $jobCategory = JobCategory::find($jobCategoryId)->name;
+            $category = $jobCategory;
         }
 
 
+        // Prevent duplicate application for same job post
+        $alreadyApplied = AppliedJob::where('post_job_id', $postJobId)
+            ->where('job_category_id', $jobCategoryId)
+            ->where('job_seeker_id', optional($user->jobSeeker)->id)
+            ->exists();
 
-        if ($jobSeekerNeedsUpdate) {
-            $jobSeeker->save();
+        if ($alreadyApplied) {
+            return response()->json([
+                'status' => false,
+                'message' => 'You have already applied for this job post in this category.',
+            ], 403);
         }
+
+        // === STEP 1: Ensure User fields are filled (only if null or blank) ===
+        $userNeedsUpdate = false;
+
+        if (empty($user->country) && $request->filled('country')) {
+            $user->country = $request->country;
+            $userNeedsUpdate = true;
+        }
+        if (empty($user->city) && $request->filled('city')) {
+            $user->city = $request->city;
+            $userNeedsUpdate = true;
+        }
+        if (empty($user->zip_code) && $request->filled('zip_code')) {
+            $user->zip_code = $request->zip_code;
+            $userNeedsUpdate = true;
+        }
+        if (empty($user->street_address) && $request->filled('street_address')) {
+            $user->street_address = $request->street_address;
+            $userNeedsUpdate = true;
+        }
+
+        if ($userNeedsUpdate) {
+            $user->save();
+        }
+
+        // === STEP 2: Ensure JobSeeker exists and has necessary data ===
+        $jobSeeker = $user->jobSeeker;
+
+        if (!$jobSeeker) {
+            $jobSeeker = $user->jobSeeker()->create([
+                'phone_number' => $request->phone
+            ]);
+        } else {
+            $jobSeekerNeedsUpdate = false;
+
+            if (empty($jobSeeker->phone_number) && $request->filled('phone')) {
+                $jobSeeker->phone_number = $request->phone;
+                $jobSeekerNeedsUpdate = true;
+            }
+
+
+
+            if ($jobSeekerNeedsUpdate) {
+                $jobSeeker->save();
+            }
+        }
+
+        // === STEP 3: Create AppliedJob ===
+        $appliedJob = AppliedJob::create([
+            'name' => $user->name,
+            'phone' => $jobSeeker->phone_number,
+            'email' => $user->email,
+            'country' => $user->country,
+            'city' => $user->city,
+            'post_code' => $user->zip_code,
+            'address' => $user->street_address,
+            'area' => $request->area,
+            'post_job_id' => $postJobId,
+            'category' => $category,
+            'job_category_id' => $jobCategoryId,  // Add job category ID here
+            'job_seeker_id' => $jobSeeker->id,
+
+            // Optional fields
+            'describe_yourself' => $request->describe_yourself,
+            'cover_letter' => $request->cover_letter,
+            'experience' => $request->experience,
+            'preferred_contact_mehtod' => $request->preferred_contact_method,
+            'on_call_status' => $request->on_call_status,
+            'certificate' => $request->certificate,
+            'job_type' => 'hiring_request_apply', // Set job_type to 'hiring_request_apply'
+        ]);
+
+        // Save interest file if present
+        if ($request->hasFile('interest_file')) {
+            $appliedJob->saveInterestFile($request->file('interest_file'));
+        }
+
+        // Save resume file if present
+        if ($request->hasFile('resume')) {
+            $resumePath = uploadFileToS3($request->file('resume'), 'resumes/' . $jobSeeker->id);
+            $appliedJob->resume = $resumePath;
+            $appliedJob->save();
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Application submitted successfully!',
+            'job_apply' => $appliedJob,
+        ], 200);
     }
-
-    // === STEP 3: Create AppliedJob ===
-    $appliedJob = AppliedJob::create([
-        'name' => $user->name,
-        'phone' => $jobSeeker->phone_number,
-        'email' => $user->email,
-        'country' => $user->country,
-        'city' => $user->city,
-        'post_code' => $user->zip_code,
-        'address' => $user->street_address,
-        'area' => $request->area,
-        'post_job_id' => $postJobId,
-        'category' => $category,
-        'job_category_id' => $jobCategoryId,  // Add job category ID here
-        'job_seeker_id' => $jobSeeker->id,
-
-        // Optional fields
-        'describe_yourself' => $request->describe_yourself,
-        'cover_letter' => $request->cover_letter,
-        'experience' => $request->experience,
-        'preferred_contact_mehtod' => $request->preferred_contact_method,
-        'on_call_status' => $request->on_call_status,
-        'certificate' => $request->certificate,
-        'job_type' => 'hiring_request_apply', // Set job_type to 'hiring_request_apply'
-    ]);
-
-    // Save interest file if present
-    if ($request->hasFile('interest_file')) {
-        $appliedJob->saveInterestFile($request->file('interest_file'));
-    }
-
-    // Save resume file if present
-    if ($request->hasFile('resume')) {
-        $resumePath = uploadFileToS3($request->file('resume'), 'resumes/' . $jobSeeker->id);
-        $appliedJob->resume = $resumePath;
-        $appliedJob->save();
-    }
-
-    return response()->json([
-        'status' => true,
-        'message' => 'Application submitted successfully!',
-        'job_apply' => $appliedJob,
-    ], 200);
-}
 
 
 
