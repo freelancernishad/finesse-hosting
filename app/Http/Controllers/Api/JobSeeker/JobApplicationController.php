@@ -217,6 +217,9 @@ public function applyForPostedJob(Request $request)
         'experience' => 'nullable|string',
         'preferred_contact_method' => 'nullable|in:email,phone',
         'on_call_status' => 'nullable|in:Stand by,On-call',
+
+
+        'certificate' => 'nullable|array',
     ]);
 
     if ($validator->fails()) {
@@ -324,6 +327,7 @@ public function applyForPostedJob(Request $request)
         'experience' => $request->experience,
         'preferred_contact_mehtod' => $request->preferred_contact_method,
         'on_call_status' => $request->on_call_status,
+        'certificate' => $request->certificate,
         'job_type' => 'hiring_request_apply', // Set job_type to 'hiring_request_apply'
     ]);
 
